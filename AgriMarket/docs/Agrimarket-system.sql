@@ -17,7 +17,7 @@ CREATE TABLE role (
 GO
 
 -- Chèn mặc định các vai trò hệ thống
-INSERT INTO role (name) VALUES ('ROLE_CUSTOMER'), ('ROLE_FARMER'), ('ROLE_ADMIN'), ('ROLE_SHIPPER');
+INSERT INTO role (name) VALUES ('ROLE_CUSTOMER'), ('ROLE_FARMER'), ('ROLE_ADMIN');
 GO
 
 -- ==========================================================
@@ -31,7 +31,7 @@ CREATE TABLE users (
     phone VARCHAR(20) UNIQUE,
     avatar_url NVARCHAR(500),
     status VARCHAR(20) CHECK(status IN ('active','banned','pending')) DEFAULT 'pending',
-    user_type VARCHAR(30) NOT NULL, -- Phân biệt thực thể ở mức JPA: 'CUSTOMER', 'FARMER', 'ADMIN', 'SHIPPER'
+    user_type VARCHAR(30) NOT NULL, -- Phân biệt thực thể ở mức JPA: 'CUSTOMER', 'FARMER', 'ADMIN'
     created_at DATETIME DEFAULT GETDATE(),
     updated_at DATETIME NULL
 );
@@ -97,14 +97,6 @@ CREATE TABLE farmer (
 );
 GO
 
--- ==========================================================
--- 6. PARTNER (Đơn vị vận chuyển - Kế thừa từ USERS)
--- ==========================================================
-CREATE TABLE partner (
-    id BIGINT PRIMARY KEY,
-    FOREIGN KEY (id) REFERENCES users(id) ON DELETE CASCADE
-);
-GO
 
 -- ==========================================================
 -- 7. OTP VERIFICATION
@@ -112,7 +104,7 @@ GO
 CREATE TABLE otp_verification (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     email VARCHAR(255) NOT NULL,
-    user_type VARCHAR(20) CHECK(user_type IN ('customer','farmer','admin','partner')),
+    user_type VARCHAR(20) CHECK(user_type IN ('customer','farmer','admin')),
     otp_code VARCHAR(10) NOT NULL,
     type VARCHAR(30) CHECK(type IN ('register','forgot_password')),
     expired_at DATETIME NOT NULL,

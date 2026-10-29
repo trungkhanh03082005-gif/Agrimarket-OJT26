@@ -184,6 +184,11 @@ const ProductReview = () => {
 
             await reviewService.submitProductReview(reviewData);
 
+            // Invalidate cached product details so new review count and stars update immediately
+            if (item && item.productId) {
+                sessionStorage.removeItem(`product_detail_${item.productId}`);
+            }
+
             const msg = isEditMode ? "Cập nhật đánh giá thành công!" : "Gửi đánh giá sản phẩm thành công!";
             setSuccessMessage(msg);
             setTimeout(() => navigate(`/profile/orders/${orderId}`), 1200);
