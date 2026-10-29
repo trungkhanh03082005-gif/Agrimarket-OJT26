@@ -1,0 +1,800 @@
+.register-farmconnect {
+  align-items: flex-start;
+  background:
+    linear-gradient(
+      0deg,
+      rgba(249, 249, 248, 1) 0%,
+      rgba(249, 249, 248, 1) 100%
+    ),
+    linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 1) 0%,
+      rgba(255, 255, 255, 1) 100%
+    );
+  display: flex;
+  flex-direction: column;
+  height: 1024px;
+  position: relative;
+  width: 100%;
+}
+
+.register-farmconnect .container {
+  align-items: flex-start;
+  align-self: stretch;
+  display: flex;
+  flex: 0 0 auto;
+  min-height: 1024px;
+  position: relative;
+  width: 100%;
+}
+
+.register-farmconnect .left-side-form {
+  align-items: center;
+  align-self: stretch;
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  justify-content: center;
+  padding: 48px 96px;
+  position: relative;
+}
+
+.register-farmconnect .div {
+  align-items: flex-start;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 40px;
+  max-width: 384px;
+  padding: 32px 0px 0px;
+  position: relative;
+  width: 384px;
+}
+
+.register-farmconnect .brand-header {
+  align-items: flex-start;
+  align-self: stretch;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  width: 100%;
+}
+
+.register-farmconnect .div-2 {
+  align-items: flex-start;
+  align-self: stretch;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+}
+
+.register-farmconnect .text-wrapper {
+  align-items: center;
+  align-self: stretch;
+  color: #012d1d;
+  display: flex;
+  font-family: "Plus Jakarta Sans-Bold", Helvetica;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.32px;
+  line-height: 40px;
+  margin-top: -1px;
+  position: relative;
+}
+
+.register-farmconnect .p {
+  align-items: center;
+  align-self: stretch;
+  color: #414844;
+  display: flex;
+  font-family: "Inter-Regular", Helvetica;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 24px;
+  margin-top: -1px;
+  position: relative;
+}
+
+.register-farmconnect .div-3 {
+  align-items: flex-start;
+  align-self: stretch;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 24px;
+  position: relative;
+  width: 100%;
+}
+
+.register-farmconnect .container-2 {
+  align-items: flex-start;
+  align-self: stretch;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 32px;
+  position: relative;
+  width: 100%;
+}
+
+.register-farmconnect .tablist-role {
+  align-items: flex-start;
+  align-self: stretch;
+  background-color: #edeeed;
+  border-radius: 8px;
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  padding: 4px;
+  position: relative;
+  width: 100%;
+}
+
+.register-farmconnect .tab {
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0px 1px 2px #0000000d;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 12px 16px;
+  position: relative;
+  width: 186px;
+}
+
+.register-farmconnect .text {
+  align-items: center;
+  color: #012d1d;
+  display: flex;
+  font-family: "Inter-SemiBold", Helvetica;
+  font-size: 14px;
+  font-weight: 600;
+  justify-content: center;
+  letter-spacing: 0.14px;
+  line-height: 20px;
+  margin-top: -1px;
+  position: relative;
+  text-align: center;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.register-farmconnect .tab-margin {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  padding: 0px 0px 0px 4px;
+  position: relative;
+  width: 190px;
+}
+
+.register-farmconnect .div-wrapper {
+  align-items: center;
+  align-self: stretch;
+  border-radius: 8px;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  justify-content: center;
+  padding: 12px 16px;
+  position: relative;
+  width: 100%;
+}
+
+.register-farmconnect .text-2 {
+  align-items: center;
+  color: #414844;
+  display: flex;
+  font-family: "Inter-SemiBold", Helvetica;
+  font-size: 14px;
+  font-weight: 600;
+  justify-content: center;
+  letter-spacing: 0.14px;
+  line-height: 20px;
+  margin-top: -1px;
+  position: relative;
+  text-align: center;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.register-farmconnect .base-fields {
+  align-items: flex-start;
+  align-self: stretch;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  width: 100%;
+}
+
+.register-farmconnect .container-3 {
+  align-items: flex-start;
+  align-self: stretch;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  width: 100%;
+}
+
+.register-farmconnect .text-wrapper-2 {
+  align-items: center;
+  align-self: stretch;
+  color: #191c1c;
+  display: flex;
+  font-family: "Inter-Medium", Helvetica;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 16px;
+  margin-top: -1px;
+  position: relative;
+}
+
+.register-farmconnect .input {
+  align-self: stretch;
+  background-color: #ffffff;
+  border: 1px solid;
+  border-color: #c1c8c2;
+  border-radius: 8px;
+  box-shadow: 0px 1px 2px #0000000d;
+  height: 46px;
+  position: relative;
+  width: 100%;
+}
+
+.register-farmconnect .container-4 {
+  align-items: center;
+  align-self: stretch;
+  display: flex;
+  flex: 0 0 auto;
+  position: relative;
+  width: 100%;
+}
+
+.register-farmconnect .input-2 {
+  background-color: #ffffff;
+  border: 1px solid;
+  border-color: #c1c8c2;
+  border-radius: 4px;
+  height: 20px;
+  position: relative;
+  width: 20px;
+}
+
+.register-farmconnect .label-margin {
+  align-items: flex-start;
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  padding: 0px 0px 0px 12px;
+  position: relative;
+}
+
+.register-farmconnect .label-i-agree-to-the {
+  align-items: center;
+  color: transparent;
+  display: flex;
+  font-family: "Inter-Medium", Helvetica;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 16px;
+  margin-top: -1px;
+  position: relative;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.register-farmconnect .span {
+  color: #414844;
+}
+
+.register-farmconnect .text-wrapper-3 {
+  color: #2c694e;
+  text-decoration: underline;
+}
+
+.register-farmconnect .button {
+  all: unset;
+  align-items: flex-start;
+  align-self: stretch;
+  background-color: #012d1d;
+  border-radius: 8px;
+  box-shadow: 0px 1px 2px #0000000d;
+  box-sizing: border-box;
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  padding: 16px 12px;
+  position: relative;
+  width: 100%;
+  cursor: pointer;
+}
+
+.register-farmconnect .text-3 {
+  align-items: center;
+  color: #ffffff;
+  display: flex;
+  font-family: "Inter-SemiBold", Helvetica;
+  font-size: 14px;
+  font-weight: 600;
+  justify-content: center;
+  letter-spacing: 0.14px;
+  line-height: 20px;
+  margin-top: -1px;
+  position: relative;
+  text-align: center;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.register-farmconnect .horizontal-divider-wrapper {
+  align-items: center;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+.register-farmconnect .horizontal-divider {
+  border-color: #c1c8c2;
+  border-top-style: solid;
+  border-top-width: 1px;
+  flex: 1;
+  flex-grow: 1;
+  height: 1px;
+  position: relative;
+}
+
+.register-farmconnect .background-wrapper {
+  align-items: flex-start;
+  align-self: stretch;
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+}
+
+.register-farmconnect .background {
+  align-items: flex-start;
+  align-self: stretch;
+  background-color: #f9f9f8;
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  padding: 0px 8px;
+  position: relative;
+}
+
+.register-farmconnect .text-4 {
+  align-items: center;
+  color: #414844;
+  display: flex;
+  font-family: "Inter-Medium", Helvetica;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 16px;
+  margin-top: -1px;
+  position: relative;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.register-farmconnect .button-2 {
+  align-items: flex-start;
+  align-self: stretch;
+  background-color: #ffffff;
+  border: 1px solid;
+  border-color: #c1c8c2;
+  border-radius: 8px;
+  box-shadow: 0px 1px 2px #0000000d;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+  justify-content: center;
+  padding: 16px;
+  position: relative;
+  width: 100%;
+  cursor: pointer;
+}
+
+.register-farmconnect .SVG {
+  height: 20px;
+  position: relative;
+  width: 20px;
+}
+
+.register-farmconnect .vector {
+  height: 100%;
+  left: 5.33%;
+  position: absolute;
+  top: 0;
+  width: 94.67%;
+}
+
+.register-farmconnect .img {
+  height: 58.33%;
+  left: 50.00%;
+  position: absolute;
+  top: 41.67%;
+  width: 50.00%;
+}
+
+.register-farmconnect .vector-2 {
+  height: 72.46%;
+  left: 0;
+  position: absolute;
+  top: 27.54%;
+  width: 100%;
+}
+
+.register-farmconnect .vector-3 {
+  height: 40.46%;
+  left: 5.31%;
+  position: absolute;
+  top: 59.54%;
+  width: 94.69%;
+}
+
+.register-farmconnect .text-5 {
+  height: 13.69px;
+  position: relative;
+  width: 136.47px;
+}
+
+.register-farmconnect .paragraph {
+  align-items: center;
+  align-self: stretch;
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  padding: 8px 0px 0px;
+  position: relative;
+  width: 100%;
+}
+
+.register-farmconnect .text-6 {
+  align-items: center;
+  color: #414844;
+  display: flex;
+  font-family: "Inter-Regular", Helvetica;
+  font-size: 16px;
+  font-weight: 400;
+  justify-content: center;
+  letter-spacing: 0;
+  line-height: 24px;
+  margin-top: -1px;
+  position: relative;
+  text-align: center;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.register-farmconnect .link-log-in-here {
+  align-items: center;
+  color: #2c694e;
+  display: flex;
+  font-family: "Inter-SemiBold", Helvetica;
+  font-size: 14px;
+  font-weight: 600;
+  justify-content: center;
+  letter-spacing: 0.14px;
+  line-height: 20px;
+  position: relative;
+  text-align: center;
+  text-decoration: underline;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.register-farmconnect .right-side-imagery {
+  align-self: stretch;
+  background-image: url(./farmer-carrying-fresh-produce.png);
+  background-position: 50% 50%;
+  background-size: cover;
+  flex: 1;
+  flex-grow: 1;
+  position: relative;
+}
+
+.register-farmconnect .glassmorphism {
+  -webkit-backdrop-filter: blur(6px) brightness(100%);
+  align-items: flex-start;
+  backdrop-filter: blur(6px) brightness(100%);
+  background-color: #ffffff33;
+  border: 1px solid;
+  border-color: #ffffff4c;
+  border-radius: 24px;
+  bottom: 48px;
+  box-shadow: 0px 8px 32px #1b433226;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  left: 48px;
+  padding: 32px;
+  position: absolute;
+  width: calc(100% - 96px);
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.register-farmconnect .glassmorphism:hover {
+  transform: translateY(-2px);
+  background-color: #ffffff40;
+}
+
+.register-farmconnect .container-5 {
+  align-items: center;
+  align-self: stretch;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 16px;
+  position: relative;
+  width: 100%;
+}
+
+.register-farmconnect .container-6 {
+  flex: 0 0 auto;
+  position: relative;
+}
+
+.register-farmconnect .heading {
+  align-items: flex-start;
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  position: relative;
+}
+
+.register-farmconnect .text-7 {
+  align-items: center;
+  color: #ffffff;
+  display: flex;
+  font-family: "Plus Jakarta Sans-Bold", Helvetica;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 32px;
+  margin-top: -1px;
+  position: relative;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.register-farmconnect .farmconnect-wrapper {
+  align-items: flex-start;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  max-width: 576px;
+  position: relative;
+  width: 100%;
+}
+
+.register-farmconnect .farmconnect {
+  align-self: stretch;
+  color: #f9f9f8;
+  font-family: "Inter-Regular", Helvetica;
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 28px;
+  margin-top: -1px;
+  position: relative;
+}
+
+.register-farmconnect .container-7 {
+  align-items: flex-start;
+  align-self: stretch;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  opacity: 0.9;
+  position: relative;
+  width: 100%;
+}
+
+.register-farmconnect .text-wrapper-4 {
+  align-items: center;
+  align-self: stretch;
+  color: #ffffff;
+  display: flex;
+  font-family: "Inter-SemiBold", Helvetica;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.14px;
+  line-height: 20px;
+  margin-top: -1px;
+  position: relative;
+  width: fit-content;
+}
+
+/* OTP Verification Modal Overlay */
+.otp-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.otp-modal-content {
+  background-color: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 440px;
+  padding: 32px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  border: 1px solid #e1e8e2;
+  box-sizing: border-box;
+}
+
+.otp-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #818884;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.otp-modal-close:hover {
+  color: #012d1d;
+}
+
+.otp-modal-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #e8f5e9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  color: #2c694e;
+}
+
+.otp-modal-title {
+  font-family: "Plus Jakarta Sans-Bold", Helvetica;
+  font-size: 22px;
+  font-weight: 700;
+  color: #012d1d;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.otp-modal-description {
+  font-family: "Inter-Regular", Helvetica;
+  font-size: 14px;
+  color: #616864;
+  text-align: center;
+  margin-bottom: 24px;
+  line-height: 20px;
+}
+
+.otp-modal-description strong {
+  color: #012d1d;
+}
+
+.otp-modal-inputs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.otp-input-field {
+  width: 44px;
+  height: 48px;
+  border: 1.5px solid #c1c8c2;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 600;
+  color: #012d1d;
+  background-color: #ffffff;
+  outline: none;
+  padding: 0;
+  line-height: 44px;
+  box-sizing: border-box;
+  transition: all 0.2s;
+}
+
+.otp-input-field:focus {
+  border-color: #2c694e;
+  box-shadow: 0 0 0 3px rgba(44, 105, 78, 0.15);
+}
+
+.otp-modal-error {
+  color: #d32f2f;
+  background-color: #ffebee;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.otp-modal-actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.otp-btn-verify {
+  width: 100%;
+  background-color: #012d1d;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.otp-btn-verify:hover {
+  background-color: #0c3e2b;
+}
+
+.otp-btn-verify:disabled {
+  background-color: #a1a8a2;
+  cursor: not-allowed;
+}
+
+.otp-resend-text {
+  font-size: 13px;
+  color: #616864;
+  text-align: center;
+  margin-top: 8px;
+}
+
+.otp-btn-resend {
+  background: none;
+  border: none;
+  color: #2c694e;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0 4px;
+  text-decoration: underline;
+}
+
+.otp-btn-resend:hover {
+  color: #012d1d;
+}
+
+.otp-btn-resend:disabled {
+  color: #a1a8a2;
+  text-decoration: none;
+  cursor: not-allowed;
+}

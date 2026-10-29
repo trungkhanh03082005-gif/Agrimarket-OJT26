@@ -1,0 +1,25 @@
+/* PASTE SOCIALBUTTON CSS FROM ANIMA HERE */
+
+.btn-social {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--white);
+  border: 1px solid #e0e0e0;
+  border-radius: var(--border-radius);
+  color: var(--text-primary);
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.btn-social:hover {
+  background-color: #fafafa;
+}
+
+.social-icon-placeholder {
+  font-weight: bold;
+  color: #4285F4;
+}

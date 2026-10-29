@@ -1,0 +1,136 @@
+/* Admin Complaints & Support CSS Stylesheet */
+
+/* Header Page Title Row styling */
+.admin-page-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.admin-page-title-info h2 {
+  margin: 0 0 6px 0;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--admin-text-main, #0f172a);
+}
+
+.admin-page-title-info p {
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--admin-text-muted, #64748b);
+}
+
+/* Stats Section (5 columns grid) */
+.admin-complaints-stats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(140px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-stat-card {
+  background: #ffffff;
+  border: 1px solid var(--admin-border, #e2e8f0);
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  box-shadow: 0 4px 6px rgba(15, 23, 42, 0.02);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.admin-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 18px;
+}
+
+.stat-icon.green {
+  color: #16a34a;
+  background: #f0fdf4;
+}
+
+.stat-icon.blue {
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.stat-icon.red {
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+.stat-icon.orange {
+  color: #ea580c;
+  background: #fff7ed;
+}
+
+.stat-icon.gray {
+  color: #475569;
+  background: #f1f5f9;
+}
+
+.admin-stat-card p {
+  margin: 0 0 2px 0;
+  color: var(--admin-text-muted, #64748b);
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.admin-stat-card strong {
+  font-size: 24px;
+  color: var(--admin-text-main, #0f172a);
+  font-weight: 800;
+}
+
+/* Badge status overrides for support request ticket lists */
+.badge-status.badge-pending {
+  background-color: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #ffedd5;
+}
+
+.badge-status.badge-assigned {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #dbeafe;
+}
+
+.badge-status.badge-processing {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.badge-status.badge-resolved {
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #d1fae5;
+}
+
+.badge-status.badge-rejected {
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fee2e2;
+}
+
+/* Responsive adjustment for stats cards */
+@media (max-width: 1024px) {
+  .admin-complaints-stats {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+}

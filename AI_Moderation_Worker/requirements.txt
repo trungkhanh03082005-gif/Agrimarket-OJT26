@@ -1,0 +1,11 @@
+﻿fastapi
+uvicorn
+opencv-python
+numpy
+requests
+ultralytics
+torch
+transformers
+sentencepiece
+protobuf
+python-dotenv

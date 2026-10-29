@@ -1,0 +1,934 @@
+/* src/pages/Farmer/FarmerPromotions/FarmerPromotions.css */
+
+:root {
+  --admin-promo-green: #059669;
+  --admin-promo-green-light: #ecfdf5;
+  --admin-promo-green-dark: #047857;
+  --admin-promo-bg: #f9fafb;
+  --admin-promo-card-bg: #ffffff;
+  --admin-promo-border: #f3f4f6;
+  --admin-promo-border-dark: #e5e7eb;
+  --admin-promo-text-main: #111827;
+  --admin-promo-text-muted: #6b7280;
+  --admin-promo-text-light: #9ca3af;
+  
+  --admin-promo-red: #dc2626;
+  --admin-promo-red-light: #fef2f2;
+  --admin-promo-orange: #f59e0b;
+  --admin-promo-orange-light: #fffbeb;
+  --admin-promo-gray: #f3f4f6;
+  --admin-promo-gray-text: #4b5563;
+}
+
+.admin-promo-page-wrapper {
+  background-color: var(--admin-promo-bg);
+  min-height: 100vh;
+  padding: 32px;
+  font-family: 'Inter', -apple-system, sans-serif;
+  color: var(--admin-promo-text-main);
+  box-sizing: border-box;
+}
+
+/* Header Row */
+.admin-promo-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.admin-promo-title-area h1 {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: var(--admin-promo-text-main);
+}
+
+.admin-promo-title-area p {
+  font-size: 16px;
+  color: var(--admin-promo-text-muted);
+  margin: 0;
+}
+
+.admin-promo-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.admin-promo-btn-create {
+  background-color: var(--admin-promo-green);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.admin-promo-btn-create:hover {
+  background-color: var(--admin-promo-green-dark);
+}
+
+/* Top Stats Grid */
+.admin-promo-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.admin-promo-stat-card {
+  background-color: var(--admin-promo-card-bg);
+  border: 1px solid var(--admin-promo-border-dark);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-promo-stat-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.admin-promo-stat-label {
+  font-size: 15px;
+  color: var(--admin-promo-text-muted);
+  margin: 0;
+  font-weight: 500;
+}
+
+.admin-promo-stat-icon {
+  color: var(--admin-promo-text-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-promo-stat-icon.active-icon { color: var(--admin-promo-green); background: var(--admin-promo-green-light); padding: 6px; border-radius: 8px; }
+.admin-promo-stat-icon.upcoming-icon { color: var(--admin-promo-orange); background: var(--admin-promo-orange-light); padding: 6px; border-radius: 8px; }
+.admin-promo-stat-icon.expired-icon { color: var(--admin-promo-text-muted); background: var(--admin-promo-gray); padding: 6px; border-radius: 8px; }
+.admin-promo-stat-icon.revenue-icon { color: #3b82f6; background: #eff6ff; padding: 6px; border-radius: 8px; }
+.admin-promo-stat-icon.orders-icon { color: #8b5cf6; background: #f5f3ff; padding: 6px; border-radius: 8px; }
+.admin-promo-stat-icon.savings-icon { color: #ec4899; background: #fdf2f8; padding: 6px; border-radius: 8px; }
+
+.admin-promo-stat-value {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  color: var(--admin-promo-text-main);
+}
+
+.admin-promo-stat-trend {
+  font-size: 14px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.trend-up {
+  color: var(--admin-promo-green);
+  font-weight: 600;
+}
+
+.trend-down {
+  color: var(--admin-promo-red);
+  font-weight: 600;
+}
+
+.trend-neutral {
+  color: var(--admin-promo-text-light);
+}
+
+.trend-arrow {
+  font-size: 12px;
+}
+
+/* Filter Bar */
+.admin-promo-filter-bar {
+  display: flex;
+  align-items: center;
+  background-color: transparent;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.admin-promo-search-box {
+  display: flex;
+  align-items: center;
+  background-color: var(--admin-promo-card-bg);
+  border: 1px solid var(--admin-promo-border-dark);
+  border-radius: 8px;
+  padding: 0 12px;
+  height: 40px;
+  width: 240px;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.admin-promo-search-box:focus-within {
+  border-color: var(--admin-promo-green);
+  box-shadow: 0 0 0 2px var(--admin-promo-green-light);
+}
+
+.admin-promo-search-box input {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100%;
+  height: 100% !important;
+  font-size: 16px;
+}
+
+.admin-promo-search-box input::placeholder {
+  color: var(--admin-promo-text-light);
+}
+
+.admin-promo-filter-buttons {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+}
+
+.admin-promo-filter-btn {
+  background-color: var(--admin-promo-card-bg);
+  border: 1px solid var(--admin-promo-border-dark);
+  border-radius: 8px;
+  padding: 0 16px;
+  height: 40px;
+  font-size: 16px;
+  color: var(--admin-promo-text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.admin-promo-filter-btn.active {
+  background-color: var(--admin-promo-green);
+  color: white;
+  border-color: var(--admin-promo-green);
+}
+
+.admin-promo-filter-btn:not(.active):hover {
+  background-color: var(--admin-promo-gray);
+}
+
+.admin-promo-btn-export {
+  background-color: var(--admin-promo-card-bg);
+  border: 1px solid var(--admin-promo-border-dark);
+  border-radius: 8px;
+  padding: 0 16px;
+  height: 40px;
+  font-size: 16px;
+  color: var(--admin-promo-text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* Promotion Cards */
+.admin-promo-promo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.admin-promo-promo-card {
+  background-color: var(--admin-promo-card-bg);
+  border: 1px solid var(--admin-promo-border-dark);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: stretch;
+  gap: 24px;
+}
+
+.admin-promo-promo-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.admin-promo-promo-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-promo-promo-info {
+  flex: 1.5;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.admin-promo-promo-info h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  color: var(--admin-promo-text-main);
+}
+
+.admin-promo-promo-discount-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.admin-promo-discount-val {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--admin-promo-red);
+}
+
+.admin-promo-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.badge-active {
+  background-color: var(--admin-promo-green-light);
+  color: var(--admin-promo-green);
+}
+
+.badge-upcoming {
+  background-color: var(--admin-promo-orange-light);
+  color: var(--admin-promo-orange);
+}
+
+.badge-expired {
+  background-color: var(--admin-promo-gray);
+  color: var(--admin-promo-gray-text);
+}
+
+.badge-pending {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+
+.badge-rejected {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.admin-promo-discount-type {
+  font-size: 15px;
+  color: var(--admin-promo-text-muted);
+  margin: 0;
+}
+
+.admin-promo-promo-applies {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-promo-col-label {
+  font-size: 14px;
+  color: var(--admin-promo-text-light);
+  margin: 0 0 12px 0;
+}
+
+.admin-promo-product-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-promo-prod-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  color: var(--admin-promo-text-main);
+  font-weight: 500;
+}
+
+.admin-promo-promo-stats {
+  flex: 1.5;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-promo-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.admin-promo-stat-row.mt-3 {
+  margin-top: 16px;
+}
+
+.admin-promo-stat-val-small {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--admin-promo-text-main);
+}
+
+.admin-promo-progress-bar {
+  width: 100%;
+  height: 6px;
+  background-color: var(--admin-promo-border-dark);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.admin-promo-progress-fill {
+  height: 100%;
+  background-color: var(--admin-promo-green);
+  border-radius: 3px;
+}
+
+.admin-promo-revenue-val {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--admin-promo-text-main);
+}
+
+.admin-promo-promo-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-left: 1px solid var(--admin-promo-border-dark);
+  padding-left: 20px;
+  justify-content: center;
+}
+
+.admin-promo-action-btn {
+  background: white;
+  border: 1px solid var(--admin-promo-border-dark);
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--admin-promo-text-muted);
+  transition: all 0.2s;
+}
+
+.admin-promo-action-btn:hover {
+  background: var(--admin-promo-gray);
+  color: var(--admin-promo-text-main);
+}
+
+.admin-promo-action-btn.delete {
+  color: var(--admin-promo-red);
+}
+
+.admin-promo-action-btn.delete:hover {
+  background: var(--admin-promo-red-light);
+  border-color: #fca5a5;
+}
+
+/* Modal CSS */
+.admin-promo-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.admin-promo-modal-content {
+  background: white;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  margin: auto;
+}
+
+.admin-promo-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.admin-promo-modal-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--admin-promo-text-main);
+}
+
+.admin-promo-modal-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--admin-promo-text-muted);
+}
+
+.admin-promo-form-group {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-promo-form-group label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--admin-promo-text-main);
+}
+
+.admin-promo-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+/* NEW Modal Styles */
+.admin-promo-modal-content.large {
+  max-width: 1100px;
+}
+
+.admin-promo-modal-3col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 300px;
+  gap: 24px;
+}
+
+.admin-promo-modal-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-promo-modal-col.mid-col {
+  border-left: 1px solid var(--admin-promo-border-dark);
+  border-right: 1px solid var(--admin-promo-border-dark);
+  padding: 0 24px;
+}
+
+.admin-promo-modal-col.preview-col {
+  padding-left: 12px;
+  background-color: #fafafa;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.admin-promo-input {
+  border: 1px solid var(--admin-promo-border-dark);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 16px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.admin-promo-input:focus {
+  border-color: var(--admin-promo-green);
+}
+
+.admin-promo-type-toggles {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-promo-toggle-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: white;
+  border: 1px solid var(--admin-promo-border-dark);
+  border-radius: 8px;
+  padding: 12px 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--admin-promo-text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admin-promo-toggle-btn.active {
+  border-color: var(--admin-promo-green);
+  background: var(--admin-promo-green-light);
+  color: var(--admin-promo-green);
+}
+
+.admin-promo-input-suffix-wrapper, .admin-promo-input-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.admin-promo-input-suffix {
+  position: absolute;
+  right: 12px;
+  color: var(--admin-promo-text-muted);
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.admin-promo-form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.admin-promo-form-group-half {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sub-label {
+  font-size: 14px;
+  color: var(--admin-promo-text-muted) !important;
+  font-weight: 400 !important;
+}
+
+.admin-promo-help-text {
+  font-size: 13px;
+  color: var(--admin-promo-text-light);
+  margin: 4px 0 0 0;
+}
+
+.admin-promo-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.req {
+  color: var(--admin-promo-red);
+}
+
+/* Product Picker */
+.admin-promo-product-picker {
+  border: 1px solid var(--admin-promo-border-dark);
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+}
+
+.admin-promo-product-picker-header {
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  color: var(--admin-promo-text-muted);
+  font-size: 16px;
+  border-bottom: 1px solid var(--admin-promo-border-dark);
+}
+
+.admin-promo-product-picker-dropdown {
+  max-height: 200px;
+  overflow-y: auto;
+  border-bottom: 1px solid var(--admin-promo-border-dark);
+}
+
+.admin-promo-product-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.admin-promo-product-picker-item:hover {
+  background: var(--admin-promo-bg);
+}
+
+.admin-promo-checkbox {
+  accent-color: var(--admin-promo-green);
+  width: 16px;
+  height: 16px;
+}
+
+.admin-promo-picker-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.admin-promo-picker-name {
+  flex: 1;
+  font-size: 16px;
+  color: var(--admin-promo-text-main);
+  font-weight: 500;
+}
+
+.admin-promo-picker-price {
+  font-size: 15px;
+  color: var(--admin-promo-text-muted);
+}
+
+.admin-promo-btn-add-more {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  color: var(--admin-promo-text-muted);
+  font-size: 15px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.admin-promo-btn-add-more:hover {
+  background: var(--admin-promo-bg);
+}
+
+/* Preview Card */
+.admin-promo-preview-header {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--admin-promo-text-main);
+}
+
+.admin-promo-preview-card {
+  background: white;
+  border: 1px solid var(--admin-promo-border-dark);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.fpp-img-wrap {
+  width: 100%;
+  height: 160px;
+  position: relative;
+}
+
+.fpp-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fpp-discount-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--admin-promo-red);
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.fpp-content {
+  padding: 16px;
+}
+
+.fpp-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: var(--admin-promo-text-main);
+}
+
+.fpp-price-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.fpp-old {
+  font-size: 15px;
+  color: var(--admin-promo-text-light);
+  text-decoration: line-through;
+}
+
+.fpp-new {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--admin-promo-red);
+}
+
+.fpp-badge-pill {
+  display: inline-block;
+  background: var(--admin-promo-green-light);
+  color: var(--admin-promo-green);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.fpp-label {
+  font-size: 14px;
+  color: var(--admin-promo-text-main);
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.fpp-apply-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--admin-promo-text-muted);
+  margin-bottom: 4px;
+}
+
+.fpp-time-apply {
+  margin-top: 16px;
+  border-top: 1px dashed var(--admin-promo-border-dark);
+  padding-top: 12px;
+}
+
+.fpp-time-val {
+  font-size: 14px;
+  color: var(--admin-promo-text-main);
+  font-weight: 500;
+}
+
+.admin-promo-preview-note {
+  font-size: 13px;
+  color: var(--admin-promo-text-light);
+  margin-top: 12px;
+  text-align: center;
+}
+
+.admin-promo-btn-cancel-wide, .admin-promo-btn-save-wide {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  display: inline-flex;
+  justify-content: center;
+}
+
+.admin-promo-btn-cancel-wide {
+  background: white;
+  border: 1px solid var(--admin-promo-border-dark);
+  color: var(--admin-promo-text-main);
+}
+
+.admin-promo-btn-save-wide {
+  background: var(--admin-promo-green);
+  border: 1px solid var(--admin-promo-green);
+  color: white;
+}
+
+/* Override cancel modal */
+.admin-promo-btn-cancel {
+  background: white;
+  border: 1px solid var(--admin-promo-border-dark);
+  color: var(--admin-promo-text-main);
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.admin-promo-btn-save {
+  background: var(--admin-promo-green);
+  border: 1px solid var(--admin-promo-green);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Homepage style product card preview */
+.admin-promo-product-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  border: 1px solid var(--admin-promo-border-dark);
+  position: relative;
+}
+.fpm-img-wrap {
+  width: 100%;
+  height: 180px;
+  position: relative;
+}
+.fpm-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.fpm-discount-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: var(--admin-promo-red);
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.fpm-heart-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  cursor: pointer;
+}
+.fpm-content {
+  padding: 16px;
+}
+.fpm-category {
+  font-size: 13px;
+  color: var(--admin-promo-green);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  display: inline-block;
+}

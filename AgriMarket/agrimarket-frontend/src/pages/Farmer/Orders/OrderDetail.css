@@ -1,0 +1,740 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+/* Base Container */
+.od-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #fdfdfd;
+  font-family: 'Inter', sans-serif;
+  padding: 24px 36px 48px;
+  color: #1f2937;
+}
+
+/* ── TOP BAR (HEADER) ─────────────────────────────────── */
+.od-topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border: none;
+  padding: 0;
+  margin: 0 0 24px 0;
+  gap: 20px;
+}
+
+.od-topbar-left {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Breadcrumbs */
+.od-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.od-breadcrumb-link {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  transition: color 0.15s;
+}
+
+.od-breadcrumb-link:hover {
+  color: #0b2e21;
+}
+
+.od-breadcrumb-sep {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.od-breadcrumb-current {
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Title & Badge */
+.od-topbar-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.od-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+
+/* Custom Status Badges matching "Awaiting Confirmation" design */
+.badge-status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 100px;
+  padding: 4px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  border: 1.5px solid transparent;
+}
+
+.badge-status.oh-st-pending    { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+.badge-status.oh-st-confirmed  { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; } /* matching Awaiting Confirmation */
+.badge-status.oh-st-preparing  { background: #f3e8ff; color: #6d28d9; border-color: #e9d5ff; }
+.badge-status.oh-st-shipping   { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
+.badge-status.oh-st-delivered  { background: #dcfce7; color: #16a34a; border-color: #bbf7d0; }
+.badge-status.oh-st-cancelled  { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+.badge-status.oh-st-rejected   { background: #fde8e8; color: #9b1c1c; border-color: #fcd5d5; }
+
+/* Subtitle placement */
+.od-placed-at {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Action Buttons (Reject / Confirm Order) */
+.od-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+.od-topbar-actions button {
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.od-topbar-actions .btn-primary {
+  background: #0b2e21;
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(11, 46, 33, 0.15);
+}
+
+.od-topbar-actions .btn-primary:hover:not(:disabled) {
+  background: #124432;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(11, 46, 33, 0.25);
+}
+
+.od-topbar-actions .btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.od-topbar-actions .btn-secondary {
+  background: #ffffff;
+  color: #ef4444;
+  border: 1.5px solid #ef4444;
+}
+
+.od-topbar-actions .btn-secondary:hover:not(:disabled) {
+  background: #fee2e2;
+  transform: translateY(-1px);
+}
+
+.od-topbar-actions .btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── CONTENT GRID ─────────────────────────────────────── */
+.od-content {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  padding-top: 24px;
+  align-items: start;
+}
+
+.od-left {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.od-right {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── CARD (BASE LAYOUT) ──────────────────────────────── */
+.od-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
+  overflow: hidden;
+}
+
+.od-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 24px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.od-card-header .icon {
+  font-size: 18px;
+}
+
+.od-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  margin: 0;
+}
+
+/* ── ORDER ITEMS (PRODUCT LIST CARD) ─────────────────── */
+.od-items-list {
+  padding: 16px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.od-item-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+  transition: background 0.15s ease;
+}
+
+.od-item-row:hover {
+  background: #f1f5f9;
+}
+
+.od-item-thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+  border: 1.5px solid #e2e8f0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #fff;
+}
+
+.od-item-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.od-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.od-item-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.od-item-farm {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.od-item-price {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.od-item-unit-price {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.od-item-total {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0b2e21; /* dark green matching $25.00 total */
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* ── TIMELINE (ORDER HISTORY CARD) ───────────────────── */
+.od-timeline {
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.od-timeline-item {
+  display: flex;
+  gap: 16px;
+  position: relative;
+}
+
+.od-timeline-item:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 11.5px;
+  top: 24px;
+  bottom: -6px;
+  width: 2px;
+  background: #e2e8f0;
+}
+
+.od-timeline-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  position: relative;
+  z-index: 1;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.od-dot-done {
+  background: #0b2e21; /* solid dark green with checkmark */
+  color: #ffffff;
+  border: none;
+}
+
+.od-dot-pending {
+  background: #ecfdf5; /* active target dot */
+  border: 2.5px solid #10b981;
+}
+
+.od-dot-inner {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+.od-dot-error {
+  background: #ef4444;
+  color: #ffffff;
+  border: none;
+}
+
+.od-timeline-body {
+  flex: 1;
+  padding-bottom: 24px;
+}
+
+.od-timeline-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.od-timeline-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #1e293b;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.od-timeline-time {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.od-timeline-desc {
+  font-size: 13.5px;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── CUSTOMER CARD ──────────────────────────────────── */
+.od-customer {
+  padding: 20px 24px;
+}
+
+.od-customer-avatar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.od-customer-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #475569;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  flex-shrink: 0;
+}
+
+.od-customer-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  margin: 0 0 2px;
+}
+
+.od-customer-since {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0;
+}
+
+.od-customer-contacts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 16px;
+}
+
+.od-contact-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.od-contact-row .icon {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.od-contact-text {
+  font-size: 13.5px;
+  color: #334155;
+}
+
+/* Customer Note Box */
+.od-note-box {
+  background: #ecfdf5;
+  border: 1.5px solid #a7f3d0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-top: 14px;
+}
+
+.od-note-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #065f46;
+  letter-spacing: 0.8px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  margin-bottom: 6px;
+}
+
+.od-note-text {
+  font-size: 13px;
+  color: #047857;
+  line-height: 1.5;
+  margin: 0;
+  font-style: italic;
+}
+
+/* ── DELIVERY DETAILS CARD ───────────────────────────── */
+.od-delivery {
+  padding: 20px 24px;
+}
+
+.od-delivery-line {
+  font-size: 14px;
+  color: #334155;
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+.od-delivery-method {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.od-delivery-method-label {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.od-delivery-method-value {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0b2e21;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* ── PAYMENT SUMMARY (REVENUE CARD) ──────────────────── */
+.od-payment {
+  padding: 20px 24px;
+}
+
+.od-payment-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.od-payment-row span:last-child {
+  color: #334155;
+  font-weight: 500;
+}
+
+.od-row-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 16px;
+  margin-top: 16px;
+}
+
+.od-row-total span:first-child {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.od-row-total .total-val {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* ── MODALS (REJECT DIALOGS) ────────────────────────── */
+.custom-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: odFadeIn 0.2s ease forwards;
+}
+
+@keyframes odFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.custom-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  padding: 24px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e2e8f0;
+}
+
+.custom-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.custom-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.custom-modal select.ap-select {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  font-size: 14px;
+  color: #1e293b;
+  background: #fff;
+}
+
+.custom-modal textarea.ap-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  font-size: 14px;
+  color: #1e293b;
+  resize: vertical;
+}
+
+.custom-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.custom-modal-actions button {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.custom-btn-cancel {
+  background: #fff;
+  border: 1.5px solid #cbd5e1;
+  color: #475569;
+}
+
+.custom-btn-cancel:hover {
+  background: #f1f5f9;
+}
+
+.custom-btn-confirm {
+  border: none;
+  color: #fff;
+}
+
+.custom-btn-confirm:hover {
+  opacity: 0.9;
+}
+
+/* ── TOAST NOTIFICATIONS ──────────────────────────────── */
+.custom-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 14px 20px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  border-left: 4px solid #10b981;
+  animation: slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.custom-toast.error {
+  border-left-color: #ef4444;
+}
+
+.custom-toast.warning {
+  border-left-color: #f59e0b;
+}
+
+.custom-toast-icon {
+  font-size: 18px;
+}
+
+.custom-toast-message {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.custom-toast-close {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  color: #9ca3af;
+  cursor: pointer;
+  margin-left: 12px;
+  padding: 0;
+  line-height: 1;
+}
+
+.custom-toast-close:hover {
+  color: #374151;
+}
+
+/* ── RESPONSIVE ───────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .od-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .od-topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .od-topbar-actions {
+    justify-content: flex-start;
+    margin-top: 10px;
+  }
+  .od-content {
+    padding: 16px 16px 30px;
+  }
+}

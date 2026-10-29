@@ -1,0 +1,126 @@
+.terms-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f6faf7;
+  font-family: 'Inter', sans-serif;
+}
+
+.terms-main {
+  flex: 1;
+  padding: 48px 24px;
+}
+
+.terms-container {
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.terms-header-section {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.terms-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: #16a34a;
+  background-color: #e8f5e9;
+  padding: 6px 12px;
+  border-radius: 20px;
+  letter-spacing: 1px;
+}
+
+.terms-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 36px;
+  font-weight: 800;
+  color: #103314;
+  margin: 16px 0 8px;
+  letter-spacing: -0.5px;
+}
+
+.terms-updated {
+  font-size: 13.5px;
+  color: #6b7c75;
+  margin: 0;
+}
+
+.terms-card {
+  background-color: #ffffff;
+  border: 1px solid #dce7e1;
+  border-radius: 24px;
+  padding: 40px 48px;
+  box-shadow: 0 20px 45px rgba(3, 61, 46, 0.04);
+}
+
+.terms-intro {
+  font-size: 16px;
+  line-height: 1.7;
+  color: #24463b;
+  margin-bottom: 24px;
+}
+
+.terms-divider {
+  border: none;
+  border-top: 1px solid #edf2ef;
+  margin: 24px 0 32px;
+}
+
+.terms-section {
+  margin-bottom: 32px;
+}
+
+.terms-section h2 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #103314;
+  margin: 0 0 14px;
+  display: flex;
+  align-items: center;
+}
+
+.terms-section p {
+  font-size: 15px;
+  line-height: 1.65;
+  color: #475569;
+  margin: 0 0 12px;
+}
+
+.terms-section ul {
+  padding-left: 20px;
+  margin: 0 0 16px;
+}
+
+.terms-section li {
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: #475569;
+  margin-bottom: 8px;
+}
+
+.terms-section strong {
+  color: #103314;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .terms-main {
+    padding: 32px 16px;
+  }
+
+  .terms-title {
+    font-size: 28px;
+  }
+
+  .terms-card {
+    padding: 24px 20px;
+    border-radius: 16px;
+  }
+
+  .terms-section h2 {
+    font-size: 18px;
+  }
+}

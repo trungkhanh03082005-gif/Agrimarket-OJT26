@@ -1,0 +1,201 @@
+/* ===== LAYOUT ===== */
+.reset-success-layout {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #f7f8f9;
+  display: flex;
+  flex-direction: column;
+  font-family: "Inter", sans-serif;
+}
+
+/* ===== HEADER ===== */
+.reset-success-header {
+  width: 100%;
+  background-color: #ffffff;
+  padding: 32px 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 48px;
+}
+
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #012d1d;
+  font-family: "Montserrat", sans-serif;
+  font-size: 24px; /* Logo to hơn một chút */
+  font-weight: 800;
+  margin: 0;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.brand-logo:hover {
+  color: #2b7050;
+}
+
+.brand-logo:hover .logo-tractor {
+  stroke: #2b7050 !important;
+}
+
+.brand-logo .logo-tractor {
+  stroke: #012d1d;
+  fill: none;
+  transition: stroke 0.3s ease;
+}
+
+/* ===== MAIN ===== */
+.reset-success-main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 16px;
+}
+
+/* ===== CARD ===== */
+.reset-success-card {
+  width: 100%;
+  max-width: 520px; /* Tăng kích thước bề ngang thẻ */
+  background: #ffffff;
+  border-radius: 16px; /* Bo góc mềm mại hơn */
+  padding: 56px 48px; /* Padding to hơn để tạo độ thoáng */
+  box-shadow: 0px 16px 48px rgba(0, 0, 0, 0.08); /* Bóng đổ nổi bật hơn */
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+/* Top Glow / Bar */
+.reset-success__top-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 8px; /* Dải màu trên cùng dày hơn */
+  background: #012d1d;
+}
+
+/* ===== ILLUSTRATION ===== */
+.reset-success__illustration-wrapper {
+  width: 100%;
+  height: 220px; /* Ảnh minh hoạ to hơn */
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 32px;
+  background-color: #f0f3f1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.reset-success__illustration {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ===== ICON ===== */
+.reset-success__icon-wrapper {
+  margin-bottom: 24px;
+}
+
+.reset-success__icon-circle {
+  width: 64px; /* Vòng tròn icon to hơn */
+  height: 64px;
+  border-radius: 50%;
+  background-color: #eaf3ee;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ===== TEXT ===== */
+.reset-success__title {
+  font-family: "Montserrat", sans-serif;
+  font-size: 28px; /* Chữ tiêu đề to hơn */
+  font-weight: 700;
+  color: #012d1d;
+  text-align: center;
+  margin: 0 0 16px 0;
+  line-height: 36px; /* Giãn dòng thoáng hơn */
+}
+
+.reset-success__description {
+  font-size: 15px; /* Chữ mô tả to hơn */
+  line-height: 24px;
+  color: #5c655f;
+  text-align: center;
+  margin: 0 0 32px 0;
+}
+
+/* ===== COUNTDOWN PILL ===== */
+.reset-success__countdown-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f7f8f9;
+  padding: 10px 20px; /* Nút countdown to hơn */
+  border-radius: 24px;
+  margin-bottom: 40px; /* Căn lề to hơn trước nút bấm */
+  border: 1px solid #e4e7e5;
+}
+
+.reset-success__countdown-text {
+  font-size: 13px; /* Chữ to hơn */
+  font-weight: 600;
+  color: #5c655f;
+}
+
+.reset-success__countdown-number {
+  font-size: 14px;
+  font-weight: 700;
+  color: #012d1d;
+}
+
+/* ===== BUTTON ===== */
+.reset-success__button {
+  width: 100%;
+  background: #012d1d;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px; /* Góc bo tròn hơn */
+  height: 56px; /* Nút bấm cao hơn, chuẩn form to */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  font-family: "Inter", sans-serif;
+  font-size: 16px; /* Chữ to hơn */
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.reset-success__button:hover {
+  opacity: 0.9;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .header-container {
+    padding: 0 24px;
+  }
+
+  .reset-success-card {
+    padding: 40px 24px;
+    max-width: 100%;
+  }
+
+  .reset-success__title {
+    font-size: 24px;
+  }
+}

@@ -1,0 +1,56 @@
+/* =============================================
+   NAVBAR COMPONENT - STYLES
+   =============================================
+   Paste Anima generated CSS below:
+   ============================================= */
+
+/* ===================================== */
+/* PASTE ANIMA GENERATED CSS HERE        */
+/* ===================================== */
+
+/* ===== NAVBAR ===== */
+.navbar {
+  width: 100%;
+  height: 64px;
+  background-color: var(--background-color);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--spacing-xl);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-navbar);
+  box-shadow: var(--shadow-sm);
+}
+
+.navbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  text-decoration: none;
+  color: var(--primary-color);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.navbar-logo:hover {
+  text-decoration: none;
+}
+
+.navbar-logo-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}

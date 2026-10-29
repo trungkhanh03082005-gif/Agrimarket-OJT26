@@ -1,0 +1,22 @@
+# Local uploads folder containing test images/documents
+uploads/
+
+# IDE settings
+.idea/
+.vscode/
+
+# Local node/npm
+node_modules/
+package-lock.json
+*.log
+
+# Python virtual environment and caches
+.venv/
+AI_Moderation_Worker/huggingface_cache/
+AI_Moderation_Worker/__pycache__/
+**/__pycache__/
+
+# Environment variables (never commit real .env files)
+**/.env
+**/.env.local
+**/.env.production

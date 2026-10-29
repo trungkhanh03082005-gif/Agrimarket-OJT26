@@ -1,0 +1,15 @@
+/* FarmConnect Assets - Images */
+/* Place your images in this directory */
+
+/*
+ * Required Images:
+ * ─────────────────────────────────────────────
+ * forgot-password-banner.png  → Left-panel farm banner (ForgotPassword screen)
+ * success-lock.png            → Success illustration (ResetSuccess screen)
+ * user-avatar.png             → User profile avatar (Sidebar, DashboardLayout)
+ *
+ * ─────────────────────────────────────────────
+ * USAGE IN JSX:
+ * import bannerImg from '../../assets/images/forgot-password-banner.png';
+ * <img src={bannerImg} alt="Farm banner" />
+ */

@@ -1,0 +1,88 @@
+# =========================
+# Java / Spring Boot
+# =========================
+target/
+!.mvn/wrapper/maven-wrapper.jar
+**/target/
+**/build/
+*.log
+
+# =========================
+# Maven / Gradle
+# =========================
+.mvn/
+.mvn/wrapper/maven-wrapper.jar
+.gradle/
+gradle-app.setting
+
+# =========================
+# IntelliJ IDEA
+# =========================
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# =========================
+# Eclipse / STS
+# =========================
+.classpath
+.project
+.settings/
+.springBeans
+.sts4-cache
+.apt_generated
+
+# =========================
+# NetBeans
+# =========================
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# =========================
+# VS Code
+# =========================
+.vscode/
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Frontend (React / Vite)
+# =========================
+node_modules/
+dist/
+build/
+.vite/
+.parcel-cache/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# Environment variables
+# =========================
+.env
+.env.local
+.env.development
+.env.production
+
+# =========================
+# Postman / API tools
+# =========================
+.postman/
+postman/
+
+# =========================
+# Backup / misc
+# =========================
+*.bak
+*.swp

@@ -1,0 +1,310 @@
+/* index.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+
+:root {
+  --primary-color: #1B5E20;
+  --secondary-color: #4CAF50;
+  --background-color: #F5F7F4;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --white: #ffffff;
+  --error-color: #d32f2f;
+  --border-radius: 12px;
+  --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--background-color);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  font-family: inherit;
+}
+
+input {
+  font-family: inherit;
+}
+
+/* PASTE GLOBAL CSS OR DESIGN TOKENS FROM ANIMA HERE */
+
+/* Cart count badge styles */
+.icon-btn {
+  position: relative !important;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background-color: #ef4444;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 1.5px solid #ffffff;
+  pointer-events: none;
+  animation: pulse-badge 2s infinite;
+}
+
+@keyframes pulse-badge {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+/* ── GLOBAL TOAST NOTIFICATIONS ──────────────────────── */
+.custom-toast {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  top: auto !important;
+  left: auto !important;
+  width: auto !important;
+  min-width: 300px !important;
+  max-width: 420px !important;
+  height: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  background: #ffffff !important;
+  border-radius: 12px !important;
+  padding: 14px 20px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
+  z-index: 100000 !important;
+  border: 1.5px solid #e2e8f0 !important;
+  border-left: 5px solid #10b981 !important;
+  animation: slideInToastUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+.custom-toast.success {
+  background: #f0fdf4 !important;
+  border-color: #bbf7d0 !important;
+  border-left-color: #10b981 !important;
+}
+
+.custom-toast.error {
+  background: #fff5f5 !important;
+  border-color: #fca5a5 !important;
+  border-left-color: #ef4444 !important;
+}
+
+.custom-toast.warning {
+  background: #fefce8 !important;
+  border-color: #fde047 !important;
+  border-left-color: #f59e0b !important;
+}
+
+.custom-toast-icon {
+  font-size: 18px !important;
+  flex-shrink: 0 !important;
+}
+
+.custom-toast-message {
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  color: #334155 !important;
+  flex: 1 !important;
+  line-height: 1.4 !important;
+}
+
+.custom-toast-close {
+  background: transparent !important;
+  border: none !important;
+  font-size: 18px !important;
+  color: #94a3b8 !important;
+  cursor: pointer !important;
+  margin-left: 12px !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  transition: color 0.15s !important;
+}
+
+.custom-toast-close:hover {
+  color: #475569 !important;
+}
+
+@keyframes slideInToastUp {
+  from {
+    transform: translateY(80px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Toast container for stacked toasts */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 100000;
+  pointer-events: none;
+}
+
+.toast-container .custom-toast,
+.toast-container .product-detail-toast {
+  position: relative !important;
+  bottom: auto !important;
+  right: auto !important;
+  pointer-events: auto;
+  margin: 0 !important;
+}
+
+/* Hide default browser password reveal and clear buttons (Microsoft Edge, Internet Explorer, etc.) */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none !important;
+}
+
+/* ── LOCKED USER OVERLAY ── */
+.locked-user-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999999; /* Make sure it covers absolutely everything */
+  animation: fadeInLockedOverlay 0.4s ease-out;
+}
+
+.locked-user-card {
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  padding: 40px 32px;
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
+  border: 1px solid rgba(220, 38, 38, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: scaleInLockedCard 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.locked-user-icon {
+  background-color: #fef2f2;
+  color: #dc2626;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 16px rgba(220, 38, 38, 0.1);
+}
+
+.lock-icon-svg {
+  width: 36px;
+  height: 36px;
+}
+
+.locked-user-card h2 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  font-size: 24px;
+  color: #111827;
+  margin: 0 0 16px 0;
+}
+
+.locked-desc {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: #4b5563;
+  margin: 0 0 12px 0;
+}
+
+.locked-support-hint {
+  font-size: 13.5px;
+  color: #9ca3af;
+  margin: 0 0 32px 0;
+}
+
+.locked-logout-btn {
+  background: #dc2626;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 12px 36px;
+  border-radius: 30px;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.2);
+  width: 100%;
+}
+
+.locked-logout-btn:hover {
+  background: #b91c1c;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(220, 38, 38, 0.3);
+}
+
+.locked-logout-btn:active {
+  transform: translateY(0);
+}
+
+.app-locked-blur {
+  filter: blur(8px);
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+@keyframes fadeInLockedOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleInLockedCard {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}

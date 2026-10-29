@@ -1,0 +1,19 @@
+/* PASTE AUTHCARD CSS FROM ANIMA HERE */
+
+.auth-card {
+  display: flex;
+  background-color: var(--white);
+  border-radius: 16px;
+  box-shadow: var(--box-shadow);
+  overflow: hidden;
+  width: 100%;
+  max-width: 1000px;
+  min-height: 600px;
+}
+
+@media (max-width: 768px) {
+  .auth-card {
+    flex-direction: column;
+    min-height: auto;
+  }
+}

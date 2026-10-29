@@ -1,0 +1,27 @@
+/* PreorderDetail.css */
+@import "./OrderDetail.css";
+
+/* Preorder specific status badge styles */
+.badge-status.oh-st-preorder-pending {
+  background: #fef3c7;
+  color: #d97706;
+  border-color: #fde68a;
+}
+
+.badge-status.oh-st-preorder-paid {
+  background: #eff6ff;
+  color: #2563eb;
+  border-color: #bfdbfe;
+}
+
+.badge-status.oh-st-preorder-completed {
+  background: #f0fdf4;
+  color: #16a34a;
+  border-color: #bbf7d0;
+}
+
+.badge-status.oh-st-preorder-cancelled {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}

@@ -1,0 +1,31 @@
+/* FarmConnect Assets - Icons */
+/* Place your SVG icons in this directory */
+
+/*
+ * Required Icons:
+ * ─────────────────────────────────────────────
+ * mail-icon.svg               → Email input icon (ForgotPassword)
+ * arrow-left.svg              → Back to login link (ForgotPassword)
+ * security-lock.svg           → Security note icon (ForgotPassword)
+ *
+ * reset-icon.svg              → Reset password header icon (ResetPassword)
+ * eye-icon.svg                → Show password toggle (PasswordInput, ChangePassword)
+ * eye-off-icon.svg            → Hide password toggle (PasswordInput)
+ *
+ * success-check.svg           → Success checkmark (ResetSuccess)
+ * arrow-right.svg             → Go to Login arrow (ResetSuccess)
+ *
+ * sidebar-profile.svg         → Sidebar Profile item (Sidebar)
+ * sidebar-security.svg        → Sidebar Security item (Sidebar)
+ * sidebar-notification.svg    → Sidebar Notifications item (Sidebar)
+ * sidebar-history.svg         → Sidebar History item (Sidebar)
+ * logout.svg                  → Sidebar Sign Out icon (Sidebar)
+ *
+ * modal-success.svg           → Modal success icon (ChangePasswordSuccess)
+ * warning-icon.svg            → Modal warning note icon (ChangePasswordSuccess)
+ *
+ * ─────────────────────────────────────────────
+ * USAGE IN JSX:
+ * import mailIcon from '../../assets/icons/mail-icon.svg';
+ * <img src={mailIcon} alt="" aria-hidden="true" />
+ */

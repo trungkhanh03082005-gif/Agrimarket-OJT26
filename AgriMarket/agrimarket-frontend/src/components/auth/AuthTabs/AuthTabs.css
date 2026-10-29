@@ -1,0 +1,28 @@
+/* PASTE AUTHTABS CSS FROM ANIMA HERE */
+
+.auth-tabs {
+  display: flex;
+  background-color: var(--background-color);
+  padding: 4px;
+  border-radius: var(--border-radius);
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.auth-tab-btn {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border-radius: calc(var(--border-radius) - 2px);
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.auth-tab-btn.active {
+  background-color: var(--white);
+  color: var(--primary-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
