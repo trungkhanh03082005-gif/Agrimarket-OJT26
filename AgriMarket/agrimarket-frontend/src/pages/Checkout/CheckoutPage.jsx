@@ -915,11 +915,20 @@ export default function CheckoutPage() {
         } else if (!/^(0[123456789])([0-9]{8})$/.test(recipientPhone.trim().replace(/\s+/g, ""))) {
             formErrors.recipientPhone = "Số điện thoại không đúng định dạng (ví dụ: 0901234567)";
         }
-        if (!addrProvince.code || !addrDistrict.code || !addrWard.code || !addrStreet.trim()) {
-            formErrors.recipientAddress = "Vui lòng nhập đầy đủ địa chỉ giao hàng 4 cấp";
-        } else if (!latitude || !longitude) {
-            formErrors.recipientAddress = "Vui lòng chọn vị trí của bạn trên bản đồ";
-        } else if (activeDistanceInfo.distance !== null && !activeDistanceInfo.isValid) {
+        if (selectedAddressIndex !== -1) {
+            const selected = savedAddresses[selectedAddressIndex];
+            if (!selected || !selected.address) {
+                formErrors.recipientAddress = "Vui lòng chọn địa chỉ nhận hàng";
+            }
+        } else {
+            if (!addrProvince.code || !addrDistrict.code || !addrWard.code || !addrStreet.trim()) {
+                formErrors.recipientAddress = "Vui lòng nhập đầy đủ địa chỉ giao hàng 4 cấp";
+            } else if (!latitude || !longitude) {
+                formErrors.recipientAddress = "Vui lòng chọn vị trí của bạn trên bản đồ";
+            }
+        }
+
+        if (activeDistanceInfo.distance !== null && !activeDistanceInfo.isValid) {
             formErrors.recipientAddress = `Địa chỉ nhận hàng vượt quá khoảng cách giao hàng tối đa của một số sản phẩm trong đơn hàng: ${activeDistanceInfo.invalidDetails.join("; ")}. Vui lòng chọn địa chỉ nhận hàng khác.`;
         }
 
@@ -955,12 +964,14 @@ export default function CheckoutPage() {
         setIsProcessing(true);
 
         try {
-            const formattedAddress = addressService.formatAddress({
-                street: addrStreet.trim(),
-                ward: addrWard.name,
-                district: addrDistrict.name,
-                province: addrProvince.name,
-            });
+            const formattedAddress = (selectedAddressIndex !== -1 && savedAddresses[selectedAddressIndex])
+                ? savedAddresses[selectedAddressIndex].address
+                : addressService.formatAddress({
+                    street: addrStreet.trim(),
+                    ward: addrWard.name,
+                    district: addrDistrict.name,
+                    province: addrProvince.name,
+                });
 
             // Auto-save address to customer_address if not already existing
             if (profileData && profileData.role === "customer") {

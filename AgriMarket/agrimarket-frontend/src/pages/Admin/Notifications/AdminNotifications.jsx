@@ -273,11 +273,6 @@ const audienceOptions = [
         description: "Các tài khoản đã đăng ký làm nông dân / nhà vườn",
     },
     {
-        value: "partner",
-        label: "Đơn vị vận chuyển",
-        description: "Các tài khoản shipper hoặc transport partner",
-    },
-    {
         value: "single",
         label: "Gửi riêng 1 user",
         description: "Gửi thông báo tới một người dùng cụ thể",
@@ -813,7 +808,7 @@ const AdminNotifications = () => {
                                                                                     color: u.type === "farmer" ? "#2e7d32" : u.type === "customer" ? "#1565c0" : "#616161",
                                                                                     fontWeight: "600"
                                                                                 }}>
-                                                                                    {u.type === "farmer" ? "NHÀ VƯỜN" : u.type === "customer" ? "KHÁCH HÀNG" : "VẬN CHUYỂN"}
+                                                                                    {u.type === "farmer" ? "NHÀ VƯỜN" : "KHÁCH HÀNG"}
                                                                                 </span>
                                                                             </div>
                                                                             <div style={{ color: "#666", fontSize: "12px" }}>

@@ -32,7 +32,7 @@ const CreateAccount = () => {
   // UI Helper states for inline adding tags
   const [isAddingFarmCat, setIsAddingFarmCat] = useState(false);
   const [isAddingCustPref, setIsAddingCustPref] = useState(false);
-  const [isAddingRoute, setIsAddingRoute] = useState(false);
+
   const [isAddingPerm, setIsAddingPerm] = useState(false);
 
   // Farmer specific
@@ -75,12 +75,12 @@ const CreateAccount = () => {
   const [customerPreferences, setCustomerPreferences] = useState(["Rau hữu cơ", "Trái cây ôn đới"]);
   const [customerVipLevel, setCustomerVipLevel] = useState("Standard");
 
-  // Partner specific
-  const [companyName, setCompanyName] = useState("");
-  const [licensePlate, setLicensePlate] = useState("");
-  const [maxPayload, setMaxPayload] = useState("2.5 Tấn");
-  const [vehicleType, setVehicleType] = useState("Xe tải bảo ôn (Đông lạnh)");
-  const [partnerRoutes, setPartnerRoutes] = useState(["Lâm Đồng - TP. HCM"]);
+
+
+
+
+
+
 
   // Admin specific
   const [adminLevel, setAdminLevel] = useState("Super Admin");
@@ -461,13 +461,6 @@ const CreateAccount = () => {
         vipLevel: customerVipLevel,
         preferences: customerPreferences
       }),
-      ...(role === "partner" && {
-        companyName,
-        licensePlate,
-        maxPayload,
-        vehicleType,
-        routes: partnerRoutes
-      }),
       ...(role === "admin" && {
         adminLevel,
         adminDepartment,
@@ -498,7 +491,7 @@ const CreateAccount = () => {
         phone: "0123456789",
         role: "customer",
         status: "suspended",
-        avatarUrl: "",
+
         createdAt: "2026-05-10T14:30:00"
       },
       {
@@ -524,16 +517,6 @@ const CreateAccount = () => {
         status: "active",
         avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150",
         createdAt: "2026-04-01T08:00:00"
-      },
-      {
-        id: 5,
-        fullName: "Elena Rostova",
-        email: "elena@partner.com",
-        phone: "0777666555",
-        role: "partner",
-        status: "pending",
-        avatarUrl: "",
-        createdAt: "2026-06-05T16:15:00"
       }
     ];
 
@@ -811,6 +794,16 @@ const CreateAccount = () => {
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="7" cy="18" r="2"></circle><circle cx="18" cy="18" r="2"></circle><path d="M7 16h11v-2H9v-3h7V9H9V6H7v10z"></path><path d="M16 9h3l2 3v4"></path></svg>
                     </span>
                     <span className="role-card-name">Nông dân</span>
+                  </div>
+
+                  <div 
+                    className={`role-assignment-card ${role === "admin" ? "active" : ""}`}
+                    onClick={() => setRole("admin")}
+                  >
+                    <span className="role-card-icon" style={{ display: "flex", color: role === "admin" ? "var(--admin-primary)" : "var(--admin-text-muted)" }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    </span>
+                    <span className="role-card-name">Quản trị viên</span>
                   </div>
                   
                 </div>

@@ -77,6 +77,7 @@ public class ReviewController {
     }
 
     @PostMapping("/reviews/product")
+    @org.springframework.cache.annotation.CacheEvict(value = "product_detail", key = "#request.productId")
     public ResponseEntity<?> submitReview(Principal principal, @RequestBody ReviewSubmitRequest request) {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized: Vui lòng đăng nhập.");

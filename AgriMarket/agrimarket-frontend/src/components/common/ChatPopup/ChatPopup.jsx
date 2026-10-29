@@ -63,7 +63,6 @@ export const ChatPopup = () => {
   const isFarmerDashboard = location.pathname === "/farmer" || location.pathname.startsWith("/farmer/");
   const shouldHideChat = isFarmerDashboard || 
                          location.pathname.startsWith("/admin") || 
-                         location.pathname.startsWith("/shipper") ||
                          location.pathname.startsWith("/login") ||
                          location.pathname.startsWith("/register");
   const [isOpen, setIsOpen] = useState(false);

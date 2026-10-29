@@ -27,7 +27,7 @@ public class AdminNotification {
     private String notificationType; // "system", "order", "payment", "farmer", "promotion"
 
     @Column(name = "target_audience")
-    private String targetAudience; // "all", "customer", "farmer", "partner"
+    private String targetAudience; // "all", "customer", "farmer"
 
     @Column(name = "status")
     private String status; // "sent", "scheduled", "draft", "failed"
@@ -45,10 +45,10 @@ public class AdminNotification {
     private Long targetUserId;
 
     @Column(name = "target_user_type")
-    private String targetUserType; // "customer", "farmer", "partner"
+    private String targetUserType; // "customer", "farmer"
 
     @Column(name = "target_users", columnDefinition = "TEXT")
-    private String targetUsers; // e.g. "farmer:13,customer:15,partner:2"
+    private String targetUsers; // e.g. "farmer:13,customer:15"
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
