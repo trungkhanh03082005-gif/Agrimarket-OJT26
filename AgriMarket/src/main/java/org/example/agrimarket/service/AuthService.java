@@ -97,12 +97,8 @@ public class AuthService {
             hashedPassword = ((Customer) user).getPassword();
         }
 
-        System.out.println("DEBUG LOGIN: email=" + email + ", resolvedRole=" + resolvedRole + ", inputPassword=" + password + ", storedHashedPassword=" + hashedPassword);
         if (!passwordEncoder.matches(password, hashedPassword)) {
-            System.out.println("DEBUG LOGIN: matches FAILED!");
             throw new RuntimeException("Tài khoản hoặc mật khẩu không chính xác");
-        } else {
-            System.out.println("DEBUG LOGIN: matches SUCCESS!");
         }
 
         String token = jwtUtil.generateToken(email, resolvedRole);

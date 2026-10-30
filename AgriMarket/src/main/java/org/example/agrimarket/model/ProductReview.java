@@ -39,6 +39,9 @@ public class ProductReview {
     @Column(columnDefinition = "TEXT")
     private String comment;
 
+    @Column(name = "farmer_reply", columnDefinition = "TEXT")
+    private String farmerReply;
+
     @Column(name = "quality_rating")
     private Integer qualityRating;
 

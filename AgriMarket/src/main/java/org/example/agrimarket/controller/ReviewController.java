@@ -76,6 +76,13 @@ public class ReviewController {
         public void setSelectedTags(List<String> selectedTags) { this.selectedTags = selectedTags; }
     }
 
+    public static class FarmerReplyRequest {
+        private String reply;
+
+        public String getReply() { return reply; }
+        public void setReply(String reply) { this.reply = reply; }
+    }
+
     @PostMapping("/reviews/product")
     @org.springframework.cache.annotation.CacheEvict(value = "product_detail", key = "#request.productId")
     public ResponseEntity<?> submitReview(Principal principal, @RequestBody ReviewSubmitRequest request) {
@@ -328,6 +335,7 @@ public class ReviewController {
                 map.put("images", images);
                 map.put("tags", tags);
                 map.put("specificRatings", specificRatings);
+                map.put("farmerReply", review.getFarmerReply());
                 map.put("helpful", 0);
                 map.put("notHelpful", 0);
 
@@ -461,6 +469,7 @@ public class ReviewController {
                 map.put("images", images);
                 map.put("tags", tags);
                 map.put("specificRatings", specificRatings);
+                map.put("farmerReply", review.getFarmerReply());
 
                 if (review.getProduct() != null) {
                     map.put("productId", review.getProduct().getId());
@@ -500,6 +509,45 @@ public class ReviewController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Đã xảy ra lỗi khi lấy danh sách đánh giá của nhà vườn: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/farmer/reviews/{reviewId}/reply")
+    public ResponseEntity<?> replyToReview(
+            Principal principal,
+            @PathVariable Long reviewId,
+            @RequestBody FarmerReplyRequest request) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Vui lòng đăng nhập.");
+        }
+
+        String reply = request != null && request.getReply() != null
+                ? request.getReply().trim()
+                : "";
+        if (reply.isEmpty()) {
+            return ResponseEntity.badRequest().body("Nội dung phản hồi không được để trống.");
+        }
+        if (reply.length() > 2000) {
+            return ResponseEntity.badRequest().body("Phản hồi không được vượt quá 2000 ký tự.");
+        }
+
+        try {
+            Farmer farmer = farmerRepository.findByEmail(principal.getName())
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thông tin nông dân."));
+            ProductReview review = productReviewRepository
+                    .findByIdAndProductFarmerId(reviewId, farmer.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đánh giá thuộc nhà vườn của bạn."));
+
+            review.setFarmerReply(reply);
+            productReviewRepository.save(review);
+
+            return ResponseEntity.ok(Map.of("farmerReply", reply));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Không thể lưu phản hồi đánh giá. Vui lòng thử lại.");
         }
     }
 

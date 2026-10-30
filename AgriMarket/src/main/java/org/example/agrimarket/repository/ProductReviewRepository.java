@@ -29,5 +29,7 @@ public interface ProductReviewRepository extends JpaRepository<ProductReview, Lo
 
     List<ProductReview> findByProductFarmerIdOrderByCreatedAtDesc(Long farmerId);
 
+    Optional<ProductReview> findByIdAndProductFarmerId(Long id, Long farmerId);
+
     Long countByProductId(Long productId);
 }

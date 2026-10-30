@@ -6,6 +6,7 @@ import {
   Filter,
   Image as ImageIcon,
   MessageCircle,
+  Send,
   ShoppingBag,
   TrendingUp,
   X,
@@ -57,6 +58,8 @@ export const FarmerReviews = () => {
   const [ratingFilter, setRatingFilter] = useState("all"); // "all" | "5" | "4" | "3" | "2" | "1" | "has_images" | "has_comment"
   const [sortBy, setSortBy] = useState("newest"); // "newest" | "oldest" | "highest" | "lowest"
   const [activeImageModal, setActiveImageModal] = useState(null);
+  const [savingReplyIds, setSavingReplyIds] = useState([]);
+  const [replyFeedback, setReplyFeedback] = useState({});
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -85,6 +88,42 @@ export const FarmerReviews = () => {
       console.error("Lỗi khi tải danh sách đánh giá của nông dân:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleReplyChange = (reviewId, reply) => {
+    setReviewsData((current) => ({
+      ...current,
+      reviews: current.reviews.map((review) =>
+        review.id === reviewId ? { ...review, farmerReply: reply } : review
+      ),
+    }));
+    setReplyFeedback((current) => ({ ...current, [reviewId]: "" }));
+  };
+
+  const handleReplySubmit = async (event, review) => {
+    event.preventDefault();
+    const reply = (review.farmerReply || "").trim();
+    if (!reply || savingReplyIds.includes(review.id)) return;
+
+    setSavingReplyIds((current) => [...current, review.id]);
+    setReplyFeedback((current) => ({ ...current, [review.id]: "" }));
+    try {
+      const result = await reviewService.replyToReview(review.id, reply);
+      setReviewsData((current) => ({
+        ...current,
+        reviews: current.reviews.map((item) =>
+          item.id === review.id ? { ...item, farmerReply: result.farmerReply } : item
+        ),
+      }));
+      setReplyFeedback((current) => ({ ...current, [review.id]: "Đã lưu phản hồi." }));
+    } catch (err) {
+      const message = typeof err.response?.data === "string"
+        ? err.response.data
+        : "Không thể lưu phản hồi. Vui lòng thử lại.";
+      setReplyFeedback((current) => ({ ...current, [review.id]: message }));
+    } finally {
+      setSavingReplyIds((current) => current.filter((id) => id !== review.id));
     }
   };
 
@@ -471,6 +510,35 @@ export const FarmerReviews = () => {
               {rev.comment && (
                 <p className="fr-comment-text">{rev.comment}</p>
               )}
+
+              <form
+                className="fr-reply-form"
+                onSubmit={(event) => handleReplySubmit(event, rev)}
+              >
+                <label htmlFor={`farmer-reply-${rev.id}`}>Phản hồi của nhà vườn</label>
+                <textarea
+                  id={`farmer-reply-${rev.id}`}
+                  value={rev.farmerReply || ""}
+                  onChange={(event) => handleReplyChange(rev.id, event.target.value)}
+                  placeholder="Viết lời phản hồi cho khách hàng..."
+                  maxLength={2000}
+                  rows={3}
+                />
+                <div className="fr-reply-footer">
+                  <span>{replyFeedback[rev.id] || `${(rev.farmerReply || "").length}/2000 ký tự`}</span>
+                  <button
+                    type="submit"
+                    disabled={!(rev.farmerReply || "").trim() || savingReplyIds.includes(rev.id)}
+                  >
+                    <Send size={15} />
+                    {savingReplyIds.includes(rev.id)
+                      ? "Đang lưu..."
+                      : rev.farmerReply
+                        ? "Cập nhật phản hồi"
+                        : "Gửi phản hồi"}
+                  </button>
+                </div>
+              </form>
 
               {/* Tags List */}
               {rev.tags && rev.tags.length > 0 && (
