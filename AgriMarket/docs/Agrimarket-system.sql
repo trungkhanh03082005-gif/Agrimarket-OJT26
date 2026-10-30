@@ -362,6 +362,7 @@ CREATE TABLE product_review (
     customer_id BIGINT NOT NULL,
     rating INT CHECK(rating BETWEEN 1 AND 5),
     comment NVARCHAR(MAX),
+    farmer_reply NVARCHAR(MAX),
     created_at DATETIME DEFAULT GETDATE(),
     UNIQUE(order_id, product_id, customer_id),
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,

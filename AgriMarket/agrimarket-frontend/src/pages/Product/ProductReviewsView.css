@@ -457,6 +457,21 @@
     line-height: 1.65;
 }
 
+.prv-farmer-reply {
+    margin-top: 16px;
+    padding: 14px 16px;
+    border-left: 3px solid #15803d;
+    border-radius: 8px;
+    background: #f0fdf4;
+}
+
+.prv-farmer-reply strong {
+    display: block;
+    margin-bottom: 6px;
+    color: #166534;
+    font-size: 13px;
+}
+
 .prv-review-images {
     display: flex;
     flex-wrap: wrap;

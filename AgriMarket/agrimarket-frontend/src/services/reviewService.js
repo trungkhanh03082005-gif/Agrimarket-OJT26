@@ -24,11 +24,17 @@ const getFarmerReviews = async () => {
   return response.data;
 };
 
+const replyToReview = async (reviewId, reply) => {
+  const response = await apiClient.put(`/api/farmer/reviews/${reviewId}/reply`, { reply });
+  return response.data;
+};
+
 const reviewService = {
   submitProductReview,
   getReviewsByProductId,
   getReviewDetail,
   getFarmerReviews,
+  replyToReview,
 };
 
 export default reviewService;

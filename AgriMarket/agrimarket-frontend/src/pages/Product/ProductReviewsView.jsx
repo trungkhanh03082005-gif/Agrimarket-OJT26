@@ -529,6 +529,13 @@ export default function ProductReviewsView() {
                                         <h4>{review.title}</h4>
                                         <p>{review.comment}</p>
 
+                                        {review.farmerReply && (
+                                            <div className="prv-farmer-reply">
+                                                <strong>Phản hồi từ nhà vườn</strong>
+                                                <p>{review.farmerReply}</p>
+                                            </div>
+                                        )}
+
                                         {review.images && review.images.length > 0 && (
                                             <div className="prv-review-images">
                                                 {review.images.map((image, index) => (

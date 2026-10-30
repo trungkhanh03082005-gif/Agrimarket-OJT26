@@ -420,6 +420,67 @@
   white-space: pre-line;
 }
 
+.fr-reply-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+}
+
+.fr-reply-form label {
+  color: #166534;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.fr-reply-form textarea {
+  width: 100%;
+  min-height: 78px;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  color: #1e293b;
+  font: inherit;
+  resize: vertical;
+}
+
+.fr-reply-form textarea:focus {
+  border-color: #16a34a;
+  outline: 2px solid #bbf7d0;
+}
+
+.fr-reply-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #64748b;
+  font-size: 0.8125rem;
+}
+
+.fr-reply-footer button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #15803d;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.fr-reply-footer button:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
 /* Tags List */
 .fr-tags-row {
   display: flex;
