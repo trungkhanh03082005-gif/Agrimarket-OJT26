@@ -121,6 +121,9 @@ CREATE TABLE category (
     name NVARCHAR(255) NOT NULL,
     description NVARCHAR(MAX),
     parent_id BIGINT NULL,
+    icon NVARCHAR(255),
+    level NVARCHAR(50),
+    status NVARCHAR(50) DEFAULT 'active',
     FOREIGN KEY (parent_id) REFERENCES category(id)
 );
 GO

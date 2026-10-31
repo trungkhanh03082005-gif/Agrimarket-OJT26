@@ -108,6 +108,9 @@ CREATE TABLE category (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     parent_id BIGINT NULL,
+    icon VARCHAR(255),
+    level VARCHAR(50),
+    status VARCHAR(50) DEFAULT 'active',
     FOREIGN KEY (parent_id) REFERENCES category(id)
 );
 
