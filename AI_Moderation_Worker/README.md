@@ -133,4 +133,5 @@ Khi các thư viện và mô hình đã được tải về đầy đủ trên m
 ## 🧪 Các API Endpoint chính
 *   `POST /moderation/frame`: Nhận ảnh base64 chụp từ camera livestream của Farmer gửi lên để YOLOv8 phân tích.
 *   `POST /moderation/text`: Nhận văn bản giọng nói STT của Farmer gửi lên để Regex và PhoBERT phân tích độc hại.
+*   `POST /moderation/chat-text`: Kiểm tra tin nhắn văn bản khách hàng/nhà vườn bằng Regex và PhoBERT. Tin vi phạm bị backend từ chối, không lưu vào cuộc trò chuyện. Nếu PhoBERT chưa sẵn sàng, backend từ chối gửi tin nhắn để tránh bỏ lọt nội dung.
 *   `GET /`: Kiểm tra trạng thái hoạt động của server và tình trạng nạp mô hình.

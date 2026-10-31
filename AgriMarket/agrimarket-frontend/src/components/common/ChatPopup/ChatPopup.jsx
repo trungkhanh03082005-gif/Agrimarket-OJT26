@@ -321,6 +321,11 @@ export const ChatPopup = () => {
       fetchConversations();
     } catch (err) {
       console.error("Failed to send message:", err);
+      setInputText(content);
+      const errorMessage = typeof err.response?.data === "string"
+        ? err.response.data
+        : err.response?.data?.message || "Không thể gửi tin nhắn.";
+      window.alert(errorMessage);
     }
   };
 
