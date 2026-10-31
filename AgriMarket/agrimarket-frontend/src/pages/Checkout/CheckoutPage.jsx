@@ -998,17 +998,11 @@ export default function CheckoutPage() {
             // Auto-save phone to user profile if updated
             if (profileData && recipientPhone !== profileData.phone) {
                 try {
-                    const updatedFormData = {
+                    await profileService.updateProfile({
                         fullName: profileData.fullName || recipientName,
                         phone: recipientPhone,
                         avatarUrl: profileData.avatarUrl,
-                        address: profileData.addresses?.[0]?.address || "",
-                        farmAddress: "",
-                        farmName: "",
-                        description: ""
-                    };
-                    const payload = buildProfileUpdatePayload("customer", updatedFormData);
-                    await profileService.updateProfile(payload, "customer");
+                    }, "customer");
                 } catch (err) {
                     console.error("Lỗi khi cập nhật số điện thoại hồ sơ:", err);
                 }
