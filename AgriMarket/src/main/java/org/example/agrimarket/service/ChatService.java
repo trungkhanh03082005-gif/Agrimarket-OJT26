@@ -38,6 +38,9 @@ public class ChatService {
     @Autowired
     private OrderRepository orderRepository;
 
+    @Autowired
+    private ChatModerationService chatModerationService;
+
     public List<ConversationResponseDTO> getConversations(String email, String role) {
         // Resolve user role
         Optional<Farmer> farmerOpt = farmerRepository.findByEmail(email);
@@ -173,12 +176,20 @@ public class ChatService {
             throw new RuntimeException("Cuộc trò chuyện này đang bị chặn.");
         }
 
+        String messageType = dto.getType() != null ? dto.getType() : "text";
+        if ("text".equalsIgnoreCase(messageType)) {
+            if (dto.getContent() == null || dto.getContent().isBlank()) {
+                throw new IllegalArgumentException("Nội dung tin nhắn không được để trống.");
+            }
+            chatModerationService.validateMessage(dto.getContent());
+        }
+
         ChatMessage msg = ChatMessage.builder()
                 .conversation(conv)
                 .sender(sender)
                 .senderRole(senderRole)
                 .content(dto.getContent())
-                .type(dto.getType() != null ? dto.getType() : "text")
+                .type(messageType)
                 .fileName(dto.getFileName())
                 .fileSize(dto.getFileSize())
                 .locationName(dto.getLocationName())

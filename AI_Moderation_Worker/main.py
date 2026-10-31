@@ -199,64 +199,77 @@ class TextPayload(BaseModel):
     text: str
 
 
-@app.post("/moderation/text")
-async def moderate_text(payload: TextPayload):
+class ChatTextPayload(BaseModel):
+    text: str
+
+
+def classify_text(text: str, check_redirects: bool, require_model: bool = False) -> dict:
     import re
     is_violation = False
     reason = None
     
     # 1. LỚP 1: Kiểm tra nhanh bằng Regex (Chặn tên đối thủ, SĐT, hoặc từ tục thô thiển)
-    lower_text = payload.text.lower()
+    lower_text = text.lower()
     
-    # Quét tên nền tảng đối thủ cạnh tranh
-    competitor_pattern = re.compile(
-        r"\b(facebook|zalo|shopee|lazada|tiki|momo|tiktok|fb\.com|zalo\.me|fb\.me|t\.me)\b", re.IGNORECASE
-    )
-    # Quét định dạng số điện thoại
-    phone_pattern = re.compile(
-        r"\b0[35789](\s*\.?\s*\d){8}\b"
-    )
-    # Danh sách từ tục tĩu thô cứng
+    if check_redirects:
+        competitor_pattern = re.compile(
+            r"\b(facebook|zalo|shopee|lazada|tiki|momo|tiktok|fb\.com|zalo\.me|fb\.me|t\.me)\b",
+            re.IGNORECASE
+        )
+        phone_pattern = re.compile(r"\b0[35789](\s*\.?\s*\d){8}\b")
+        if competitor_pattern.search(lower_text) or phone_pattern.search(lower_text):
+            return {"flagged": True, "reason": "REDIRECT_VIOLATION"}
+
     bad_words = ["địt", "đm", "đkm", "đcm", "vcl", "vãi lồn", "cặc", "lồn", "đéo", "đĩ", "chó đẻ"]
     
-    if competitor_pattern.search(lower_text) or phone_pattern.search(lower_text):
-        is_violation = True
-        reason = "REDIRECT_VIOLATION"
-    elif any(w in lower_text for w in bad_words) or "**" in lower_text:
+    if any(w in lower_text for w in bad_words) or "**" in lower_text:
         is_violation = True
         reason = "TOXIC_OR_OFFENSIVE"
         
     # 2. LỚP 2: Nếu Regex chưa bắt được, dùng PhoBERT để nhận diện ngữ nghĩa phức tạp hơn
     if not is_violation:
-        if nlp_model is not None and nlp_tokenizer is not None:
+        if nlp_model is None or nlp_tokenizer is None:
+            if require_model:
+                raise RuntimeError("PhoBERT model is not available")
+        else:
             try:
                 import torch
-                inputs = nlp_tokenizer(payload.text, return_tensors="pt", truncation=True, max_length=256)
+                inputs = nlp_tokenizer(text, return_tensors="pt", truncation=True, max_length=256)
                 with torch.no_grad():
                     outputs = nlp_model(**inputs)
-                
-                # Tính xác suất bằng Softmax
+
                 probabilities = torch.softmax(outputs.logits, dim=1)
                 toxic_prob = probabilities[0][1].item()
-                
-                # In thông tin độ tin cậy của mọi câu nói để dễ theo dõi/debug
-                print(f">>> PhoBERT check: '{payload.text}' -> Toxic confidence: {toxic_prob * 100:.2f}%")
-                
-                # Hạ ngưỡng tin cậy (Confidence Threshold) xuống 0.50 (50%)
-                THRESHOLD = 0.50
-                if toxic_prob > THRESHOLD:
+
+                print(f">>> PhoBERT check -> Toxic confidence: {toxic_prob * 100:.2f}%")
+
+                if toxic_prob > 0.50:
                     is_violation = True
                     reason = "TOXIC_OR_OFFENSIVE"
             except Exception as e:
                 print(f">>> Text classification error: {e}")
+                if require_model:
+                    raise RuntimeError("PhoBERT text classification failed") from e
+
+    return {"flagged": is_violation, "reason": reason}
+
+
+@app.post("/moderation/chat-text")
+async def moderate_chat_text(payload: ChatTextPayload):
+    return classify_text(payload.text, check_redirects=False, require_model=True)
+
+
+@app.post("/moderation/text")
+async def moderate_text(payload: TextPayload):
+    result = classify_text(payload.text, check_redirects=True)
 
     # 3. Gửi Webhook báo cáo về Spring Boot
-    if is_violation:
-        print(f">>> AI Text Moderation Violation: {reason} - {payload.text}")
+    if result["flagged"]:
+        print(f">>> AI Text Moderation Violation: {result['reason']}")
         webhook_payload = {
             "livestreamId": payload.livestreamId,
             "alertType": "AUDIO_VIOLATION",
-            "evidenceUrl": f"Phát ngôn vi phạm: \"{payload.text}\" (AI nhận diện: {reason})"
+            "evidenceUrl": f"Phát ngôn vi phạm (AI nhận diện: {result['reason']})"
         }
         try:
             r = requests.post(SPRING_BOOT_URL, json=webhook_payload)
@@ -267,10 +280,7 @@ async def moderate_text(payload: TextPayload):
         except Exception as e:
             print(f"    Error connecting to Spring Boot webhook: {e}")
 
-    return {
-        "flagged": is_violation,
-        "reason": reason
-    }
+    return result
 
 
 @app.get("/")
@@ -285,5 +295,3 @@ def index():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
-

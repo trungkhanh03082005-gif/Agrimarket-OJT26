@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
 import java.util.List;
@@ -66,6 +67,8 @@ public class ChatController {
         try {
             ChatMessageResponseDTO message = chatService.sendMessage(conversationId, principal.getName(), dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(message);
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
