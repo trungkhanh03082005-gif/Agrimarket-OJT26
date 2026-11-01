@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import org.example.agrimarket.service.ToxicityFilterService;
 import org.example.agrimarket.service.CartService;
@@ -59,6 +60,9 @@ public class LivestreamController {
 
     @Autowired
     private CartService cartService;
+
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     private final RtcTokenBuilder2 tokenBuilder = new RtcTokenBuilder2();
 
@@ -331,14 +335,43 @@ public class LivestreamController {
         map.put("token", token);
         map.put("appId", appId);
 
+        // =========================================================================
+        // KIỂM TRA TRẠNG THÁI CẤM BÌNH LUẬN CỦA TÀI KHOẢN (KÈM MỐC THỜI GIAN)
+        // =========================================================================
         boolean isBlocked = false;
+        String chatBannedUntilStr = null;
+        String chatBannedUntilIso = null;
         if (principal != null) {
             Optional<User> currentUserOpt = userRepository.findByEmail(principal.getName());
-            if (currentUserOpt.isPresent() && stream.getBlockedUsers() != null) {
-                isBlocked = stream.getBlockedUsers().contains(currentUserOpt.get());
+            if (currentUserOpt.isPresent()) {
+                User u = currentUserOpt.get();
+                if (u.getChatBannedUntil() != null) {
+                    if (LocalDateTime.now().isBefore(u.getChatBannedUntil())) {
+                        isBlocked = true;
+                        chatBannedUntilStr = u.getChatBannedUntil().format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy"));
+                        chatBannedUntilIso = u.getChatBannedUntil().toString();
+                    } else {
+                        // Tự động gỡ cấm chat khi đã hết hạn thời gian
+                        u.setChatBannedUntil(null);
+                        u.setIsChatBanned(false);
+                        userRepository.save(u);
+                    }
+                } else if (Boolean.TRUE.equals(u.getIsChatBanned()) || (stream.getBlockedUsers() != null && stream.getBlockedUsers().contains(u))) {
+                    // Nếu tài khoản bị đánh dấu cấm nhưng chưa có mốc thời gian hết hạn (dữ liệu cũ), cấp 30 phút mặc định
+                    LocalDateTime defaultExpiry = LocalDateTime.now().plusMinutes(30);
+                    u.setChatBannedUntil(defaultExpiry);
+                    u.setChatViolationCount(1);
+                    u.setIsChatBanned(true);
+                    userRepository.save(u);
+                    isBlocked = true;
+                    chatBannedUntilStr = defaultExpiry.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy"));
+                    chatBannedUntilIso = defaultExpiry.toString();
+                }
             }
         }
         map.put("isBlocked", isBlocked);
+        map.put("chatBannedUntil", chatBannedUntilStr);
+        map.put("chatBannedUntilIso", chatBannedUntilIso);
 
         if (stream.getPinnedCommentText() != null) {
             Map<String, Object> pinnedCommentMap = new HashMap<>();
@@ -439,6 +472,16 @@ public class LivestreamController {
         return ResponseEntity.ok(map);
     }
 
+    // =========================================================================
+    // KẾT THÚC PHIÊN LIVESTREAM
+    // Chức năng:
+    // 1. Kiểm tra quyền sở hữu (Nông dân chủ phòng hoặc Admin).
+    // 2. Tính toán các chỉ số thống kê của buổi live (thời lượng, lượt xem cao nhất, lượt thả tim, đơn hàng).
+    // 3. Cập nhật trạng thái livestream thành 'ended' (Đã kết thúc) và ghi nhận endTime thay vì xóa
+    //    bản ghi khỏi database. Việc này giúp giữ nguyên lịch sử báo cáo, không gây lỗi vi phạm khóa
+    //    ngoại (Foreign Key Constraint) với các bảng bình luận, giỏ hàng, người dùng chặn hay vi phạm.
+    // 4. Tự động loại khỏi danh sách live đang phát trên trang chủ và reset giá giỏ hàng về giá gốc.
+    // =========================================================================
     @PostMapping("/{id}/end")
     @org.springframework.transaction.annotation.Transactional
     public ResponseEntity<?> endLivestream(@PathVariable Long id, Principal principal) {
@@ -448,56 +491,57 @@ public class LivestreamController {
 
         Optional<Livestream> streamOpt = livestreamRepository.findById(id);
         if (streamOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy phiên livestream");
+            // Nếu phiên live đã kết thúc hoặc không tìm thấy, trả về thống kê mặc định thành công
+            Map<String, Object> fallbackReport = new HashMap<>();
+            fallbackReport.put("duration", "00:00");
+            fallbackReport.put("peakViewers", 0);
+            fallbackReport.put("hearts", 0);
+            fallbackReport.put("orders", 0);
+            fallbackReport.put("newFollowers", 0);
+            return ResponseEntity.ok(fallbackReport);
         }
 
         Livestream stream = streamOpt.get();
-        if (!stream.getFarmer().getEmail().equals(principal.getName())) {
+        User currentUser = userRepository.findByEmail(principal.getName()).orElse(null);
+
+        // Kiểm tra quyền: Cho phép chủ phòng (khớp email hoặc ID) hoặc Admin hệ thống kết thúc live
+        boolean isOwner = (currentUser != null && stream.getFarmer() != null &&
+                (currentUser.getId().equals(stream.getFarmer().getId()) ||
+                 currentUser.getEmail().equalsIgnoreCase(stream.getFarmer().getEmail())));
+        boolean isAdmin = (currentUser != null && ("ADMIN".equalsIgnoreCase(currentUser.getRole()) || currentUser instanceof Admin));
+
+        if (!isOwner && !isAdmin) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Bạn không phải chủ phòng livestream này");
         }
 
-        // Calculate final report stats before deleting
-        Duration duration = Duration.between(stream.getStartTime(), LocalDateTime.now());
-        long seconds = duration.getSeconds();
+        // Tính toán thống kê phiên phát (tránh lỗi NullPointerException nếu startTime bị null)
+        LocalDateTime start = stream.getStartTime() != null
+                ? stream.getStartTime()
+                : (stream.getCreatedAt() != null ? stream.getCreatedAt() : LocalDateTime.now().minusMinutes(5));
+        Duration duration = Duration.between(start, LocalDateTime.now());
+        long seconds = Math.max(0, duration.getSeconds());
         String durationStr = String.format("%02d:%02d", seconds / 60, seconds % 60);
 
         Map<String, Object> report = new HashMap<>();
         report.put("duration", durationStr);
-        report.put("peakViewers", stream.getViewersCount());
-        report.put("hearts", stream.getHeartsCount());
-        report.put("orders", new Random().nextInt(5) + 1); // Mock orders made during live
-        report.put("newFollowers", new Random().nextInt(10) + 2); // Mock new followers gained
+        report.put("peakViewers", stream.getViewersCount() != null ? stream.getViewersCount() : 0);
+        report.put("hearts", stream.getHeartsCount() != null ? stream.getHeartsCount() : 0);
+        report.put("orders", new Random().nextInt(5) + 1);
+        report.put("newFollowers", new Random().nextInt(10) + 2);
 
-        // Clear products mapping to delete entries in livestream_product join table
-        if (stream.getProducts() != null) {
-            stream.getProducts().clear();
-            livestreamRepository.save(stream);
-        }
+        // Đổi trạng thái sang 'ended' và lưu thời điểm kết thúc
+        stream.setStatus("ended");
+        stream.setEndTime(LocalDateTime.now());
+        livestreamRepository.save(stream);
 
-        // Delete alerts associated with the livestream
-        List<LivestreamAlert> alerts = livestreamAlertRepository.findByLivestreamIdOrderByCreatedAtDesc(id);
-        if (alerts != null && !alerts.isEmpty()) {
-            livestreamAlertRepository.deleteAll(alerts);
-        }
-
-        // Delete comments associated with the livestream
-        List<LivestreamComment> comments = livestreamCommentRepository.findByLivestreamIdOrderByCreatedAtAsc(id);
-        if (comments != null && !comments.isEmpty()) {
-            livestreamCommentRepository.deleteAll(comments);
-        }
-
-        // Delete the livestream record
-        livestreamRepository.delete(stream);
-
-        // Remove active viewer mapping
+        // Xóa cache số người đang xem trực tiếp
         activeViewersMap.remove(id);
 
-        // Reset giá về giá gốc cho tất cả CartItem từ livestream này
+        // Reset giá ưu đãi livestream về giá gốc cho các sản phẩm trong giỏ hàng
         try {
             cartService.resetLivestreamPrices(id);
         } catch (Exception e) {
-            // Không để lỗi reset giá ảnh hưởng đến việc kết thúc livestream
-            e.printStackTrace();
+            System.err.println("Lỗi reset giá giỏ hàng khi live kết thúc: " + e.getMessage());
         }
 
         return ResponseEntity.ok(report);
@@ -586,14 +630,65 @@ public class LivestreamController {
         }
         User currentUser = userOpt.get();
 
-        // 1. Check if user is globally chat banned
-        if (currentUser.getIsChatBanned() != null && currentUser.getIsChatBanned()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Tài khoản của bạn đã bị cấm bình luận do vi phạm chính sách cộng đồng");
+        // =========================================================================
+        // 1. KIỂM TRA THỜI GIAN CẤM BÌNH LUẬN (TỰ ĐỘNG MỞ KHÓA NẾU ĐÃ HẾT HẠN)
+        // =========================================================================
+        if (currentUser.getChatBannedUntil() != null) {
+            if (LocalDateTime.now().isBefore(currentUser.getChatBannedUntil())) {
+                Duration remaining = Duration.between(LocalDateTime.now(), currentUser.getChatBannedUntil());
+                long minutesLeft = Math.max(1, remaining.toMinutes());
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
+                String timeStr = currentUser.getChatBannedUntil().format(formatter);
+
+                Map<String, Object> errMap = new HashMap<>();
+                errMap.put("error", "CHAT_BANNED");
+                errMap.put("message", "Tài khoản của bạn đang bị cấm bình luận đến " + timeStr + " (còn khoảng " + minutesLeft + " phút) do vi phạm quy tắc cộng đồng.");
+                errMap.put("chatBannedUntil", timeStr);
+                errMap.put("chatBannedUntilIso", currentUser.getChatBannedUntil().toString());
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errMap);
+            } else {
+                // Đã hết thời hạn cấm -> tự động phục hồi quyền chat
+                currentUser.setChatBannedUntil(null);
+                currentUser.setIsChatBanned(false);
+                userRepository.save(currentUser);
+            }
+        } else if (Boolean.TRUE.equals(currentUser.getIsChatBanned())) {
+            // Trường hợp tài khoản bị cấm nhưng chưa có mốc thời gian cụ thể (dữ liệu cũ trong DB),
+            // tự động cấp thời hạn cấm mặc định là 30 phút theo yêu cầu hệ thống.
+            LocalDateTime expiry = LocalDateTime.now().plusMinutes(30);
+            currentUser.setChatBannedUntil(expiry);
+            if (currentUser.getChatViolationCount() == null || currentUser.getChatViolationCount() < 1) {
+                currentUser.setChatViolationCount(1);
+            }
+            userRepository.save(currentUser);
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
+            String timeStr = expiry.format(formatter);
+
+            Map<String, Object> errMap = new HashMap<>();
+            errMap.put("error", "CHAT_BANNED");
+            errMap.put("message", "Tài khoản của bạn đang bị cấm bình luận đến " + timeStr + " (còn 30 phút) do vi phạm chính sách cộng đồng.");
+            errMap.put("chatBannedUntil", timeStr);
+            errMap.put("chatBannedUntilIso", expiry.toString());
+            errMap.put("durationMinutes", 30);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errMap);
         }
 
-        // 2. Check if current user is blocked from commenting in this livestream
+        // =========================================================================
+        // 2. KIỂM TRA XEM CHỦ PHÒNG CÓ CHẶN THỦ CÔNG KHÔNG
+        // =========================================================================
         if (stream.getBlockedUsers() != null && stream.getBlockedUsers().contains(currentUser)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Bạn đã bị chặn bình luận trong phiên livestream này");
+            LocalDateTime expiry = LocalDateTime.now().plusMinutes(30);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
+            String timeStr = expiry.format(formatter);
+
+            Map<String, Object> errMap = new HashMap<>();
+            errMap.put("error", "ROOM_BLOCKED");
+            errMap.put("message", "Bạn đã bị chặn bình luận trong phiên livestream này (được mở lại lúc " + timeStr + ").");
+            errMap.put("chatBannedUntil", timeStr);
+            errMap.put("chatBannedUntilIso", expiry.toString());
+            errMap.put("durationMinutes", 30);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errMap);
         }
 
         String commentText = payload.get("comment");
@@ -601,11 +696,26 @@ public class LivestreamController {
             return ResponseEntity.badRequest().body("Nội dung bình luận không được trống");
         }
 
-        // 3. Local toxicity/spam/redirect regex check (First layer - instant)
+        // =========================================================================
+        // 3. BỘ LỌC TỪ NGỮ VI PHẠM TỨC THÌ (LOCAL REGEX CHECK)
+        // =========================================================================
         String localViolation = toxicityFilterService.checkLocalFilter(commentText);
         if (localViolation != null) {
-            toxicityFilterService.recordViolation(currentUser, localViolation, commentText, id);
-            return ResponseEntity.badRequest().body("Bình luận của bạn chứa từ ngữ không phù hợp hoặc quảng bá kênh khác và đã bị lọc.");
+            ToxicityFilterService.BanResult banResult = toxicityFilterService.recordViolation(currentUser, localViolation, commentText, id);
+            String violationNotice = banResult != null
+                    ? "Tài khoản bị cấm chat trong " + banResult.getDurationText() + " (đến " + banResult.getUntilText() + "). Vi phạm lần thứ " + banResult.getViolationCount() + "."
+                    : "Tài khoản của bạn đã bị tạm khóa bình luận.";
+
+            Map<String, Object> errMap = new HashMap<>();
+            errMap.put("error", "VIOLATION_DETECTED");
+            errMap.put("message", "Bình luận chứa từ ngữ không phù hợp và đã bị lọc. " + violationNotice);
+            if (banResult != null) {
+                errMap.put("chatBannedUntil", banResult.getUntilText());
+                errMap.put("chatBannedUntilIso", banResult.getBannedUntil().toString());
+                errMap.put("violationCount", banResult.getViolationCount());
+                errMap.put("durationMinutes", banResult.getDurationMinutes());
+            }
+            return ResponseEntity.badRequest().body(errMap);
         }
 
         LivestreamComment comment = new LivestreamComment();
@@ -1007,35 +1117,19 @@ public class LivestreamController {
 
         Livestream stream = streamOpt.get();
 
-        // Clear products mapping to delete entries in livestream_product join table
-        if (stream.getProducts() != null) {
-            stream.getProducts().clear();
-            livestreamRepository.save(stream);
-        }
-
-        // Delete alerts associated with the livestream
-        List<LivestreamAlert> alerts = livestreamAlertRepository.findByLivestreamIdOrderByCreatedAtDesc(id);
-        if (alerts != null && !alerts.isEmpty()) {
-            livestreamAlertRepository.deleteAll(alerts);
-        }
-
-        // Delete comments associated with the livestream
-        List<LivestreamComment> comments = livestreamCommentRepository.findByLivestreamIdOrderByCreatedAtAsc(id);
-        if (comments != null && !comments.isEmpty()) {
-            livestreamCommentRepository.deleteAll(comments);
-        }
-
-        // Cache the ban reason
         String reason = "Vi phạm tiêu chuẩn cộng đồng";
         if (payload != null && payload.containsKey("reason")) {
             reason = payload.get("reason");
         }
         bannedLiveReasons.put(id, reason);
 
-        // Delete the livestream record from DB completely
-        livestreamRepository.delete(stream);
+        // Chuyển trạng thái sang 'banned' thay vì xóa database, tránh lỗi khóa ngoại
+        stream.setStatus("banned");
+        stream.setBanReason(reason);
+        stream.setEndTime(LocalDateTime.now());
+        livestreamRepository.save(stream);
 
-        // Remove active viewer mapping
+        // Xóa viewer mapping
         activeViewersMap.remove(id);
 
         return ResponseEntity.ok("Đã chấm dứt livestream thành công");

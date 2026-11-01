@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.*;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/moderation")
@@ -161,13 +162,17 @@ public class ModerationController {
         List<User> users = userRepository.findAll();
         List<Map<String, Object>> banned = new ArrayList<>();
         for (User u : users) {
-            if (u.getIsChatBanned() != null && u.getIsChatBanned()) {
+            boolean isBanned = Boolean.TRUE.equals(u.getIsChatBanned()) ||
+                    (u.getChatBannedUntil() != null && LocalDateTime.now().isBefore(u.getChatBannedUntil()));
+            if (isBanned) {
                 Map<String, Object> map = new HashMap<>();
                 map.put("id", u.getId());
                 map.put("fullName", u.getFullName());
                 map.put("email", u.getEmail());
                 map.put("phone", u.getPhone());
                 map.put("avatarUrl", u.getAvatarUrl());
+                map.put("chatBannedUntil", u.getChatBannedUntil());
+                map.put("violationCount", u.getChatViolationCount());
                 banned.add(map);
             }
         }
@@ -184,6 +189,7 @@ public class ModerationController {
 
         User user = userOpt.get();
         user.setIsChatBanned(false);
+        user.setChatBannedUntil(null);
         userRepository.save(user);
 
         return ResponseEntity.ok("Đã mở khóa bình luận thành công cho người dùng " + user.getFullName());

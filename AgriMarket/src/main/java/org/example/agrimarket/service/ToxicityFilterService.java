@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.regex.Pattern;
 
 @Service
@@ -95,10 +97,73 @@ public class ToxicityFilterService {
         return null;
     }
 
-    public void recordViolation(User user, String type, String content, Long livestreamId) {
-        if (user == null) return;
+    /**
+     * DTO chứa kết quả phạt cấm bình luận trả về cho Controller hiển thị thông báo
+     */
+    public static class BanResult {
+        private final int violationCount;
+        private final long durationMinutes;
+        private final String durationText;
+        private final LocalDateTime bannedUntil;
+        private final String untilText;
 
-        // Save violation log
+        public BanResult(int violationCount, long durationMinutes, String durationText, LocalDateTime bannedUntil, String untilText) {
+            this.violationCount = violationCount;
+            this.durationMinutes = durationMinutes;
+            this.durationText = durationText;
+            this.bannedUntil = bannedUntil;
+            this.untilText = untilText;
+        }
+
+        public int getViolationCount() { return violationCount; }
+        public long getDurationMinutes() { return durationMinutes; }
+        public String getDurationText() { return durationText; }
+        public LocalDateTime getBannedUntil() { return bannedUntil; }
+        public String getUntilText() { return untilText; }
+    }
+
+    /**
+     * Tính toán thời gian cấm bình luận (tính bằng phút) theo cấp số tăng dần:
+     * - Lần 1: 30 phút (theo yêu cầu hệ thống)
+     * - Lần 2: 120 phút (2 giờ)
+     * - Lần 3: 1440 phút (24 giờ / 1 ngày)
+     * - Lần 4: 4320 phút (3 ngày)
+     * - Lần 5 trở đi: 10080 phút (7 ngày)
+     */
+    public static long calculateBanDurationMinutes(int count) {
+        switch (count) {
+            case 1:
+                return 30; // 30 phút cho lần vi phạm đầu tiên
+            case 2:
+                return 120; // 2 giờ cho lần vi phạm thứ 2
+            case 3:
+                return 1440; // 24 giờ (1 ngày) cho lần vi phạm thứ 3
+            case 4:
+                return 4320; // 3 ngày cho lần vi phạm thứ 4
+            default:
+                return 10080; // 7 ngày cho các lần tiếp theo
+        }
+    }
+
+    public static String formatDurationText(long minutes) {
+        if (minutes < 60) {
+            return minutes + " phút";
+        } else if (minutes < 1440) {
+            long hours = minutes / 60;
+            return hours + " giờ";
+        } else {
+            long days = minutes / 1440;
+            return days + " ngày";
+        }
+    }
+
+    /**
+     * Ghi nhận vi phạm, tăng số lần vi phạm và áp dụng lệnh cấm chat tạm thời có thời hạn cho tài khoản
+     */
+    public BanResult recordViolation(User user, String type, String content, Long livestreamId) {
+        if (user == null) return null;
+
+        // 1. Lưu bản ghi lịch sử vi phạm vào DB
         ChatViolationLog log = new ChatViolationLog();
         log.setUser(user);
         log.setViolationType(type);
@@ -106,28 +171,26 @@ public class ToxicityFilterService {
         log.setLivestreamId(livestreamId);
         chatViolationLogRepository.save(log);
 
-        // Count violations specifically in this livestream session
-        long violationCount = 0;
-        if (livestreamId != null) {
-            violationCount = chatViolationLogRepository.countByUserIdAndLivestreamId(user.getId(), livestreamId);
-        } else {
-            violationCount = chatViolationLogRepository.countByUserId(user.getId());
-        }
+        // 2. Tăng số lần vi phạm của tài khoản
+        int currentCount = (user.getChatViolationCount() == null ? 0 : user.getChatViolationCount()) + 1;
+        user.setChatViolationCount(currentCount);
 
-        if (violationCount >= 2 && livestreamId != null) {
-            Optional<Livestream> streamOpt = livestreamRepository.findById(livestreamId);
-            if (streamOpt.isPresent()) {
-                Livestream stream = streamOpt.get();
-                if (stream.getBlockedUsers() == null) {
-                    stream.setBlockedUsers(new HashSet<>());
-                }
-                if (!stream.getBlockedUsers().contains(user)) {
-                    stream.getBlockedUsers().add(user);
-                    livestreamRepository.save(stream);
-                    System.out.println(">>> User blocked in current livestream ID " + livestreamId + ": " + user.getEmail() + " (Violations in room: " + violationCount + ")");
-                }
-            }
-        }
+        // 3. Tính thời gian cấm tăng dần theo số lần vi phạm (Bắt đầu từ 30 phút)
+        long durationMinutes = calculateBanDurationMinutes(currentCount);
+        String durationText = formatDurationText(durationMinutes);
+
+        LocalDateTime until = LocalDateTime.now().plusMinutes(durationMinutes);
+        user.setChatBannedUntil(until);
+        user.setIsChatBanned(true);
+        userRepository.save(user);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
+        String untilText = until.format(formatter);
+
+        System.out.println(">>> User " + user.getEmail() + " banned from chat for " + durationText +
+                " until " + untilText + " (Violation #" + currentCount + ", Type: " + type + ")");
+
+        return new BanResult(currentCount, durationMinutes, durationText, until, untilText);
     }
 
     @Async

@@ -57,6 +57,12 @@ const LivestreamPage = () => {
 
   const chatContainerRef = useRef(null);
   const [tabId] = useState(() => Math.random().toString(36).substring(2) + Date.now().toString(36));
+
+  // =========================================================================
+  // TRẠNG THÁI ĐẾM NGƯỢC THỜI GIAN CẤM BÌNH LUẬN (REALTIME BAN COUNTDOWN)
+  // Quản lý chuỗi thời gian còn lại (ví dụ: "28 phút 45 giây") để hiển thị cho người dùng
+  // =========================================================================
+  const [banCountdown, setBanCountdown] = useState(null);
   const videoTimerRef = useRef(null);
   const voucherTimerRef = useRef(null);
   const chatSimRef = useRef(null);
@@ -97,6 +103,93 @@ const LivestreamPage = () => {
     scheduledTime: startTimeStr
   };
 
+  // =========================================================================
+  // ĐẾM NGƯỢC THỜI GIAN CẤM BÌNH LUẬN (REALTIME CHAT BAN COUNTDOWN)
+  // Chức năng:
+  // 1. Kiểm tra streamData.isBlocked: nếu người dùng bị cấm chat, bắt đầu đếm ngược.
+  // 2. Chuyển đổi mốc thời gian cấm (chatBannedUntilIso hoặc chatBannedUntil) sang timestamp.
+  // 3. Nếu chưa có mốc thời gian (dữ liệu cũ từ backend), tự động tính 30 phút mặc định để người dùng
+  //    luôn nhìn thấy thời gian đếm ngược chính xác (ví dụ: 29 phút 45 giây) thay vì hiện chữ "Đang khóa".
+  // 4. Lưu mốc thời gian vào localStorage để khi người dùng tải lại trang (F5) đồng hồ vẫn chạy đúng.
+  // 5. Khi hết thời gian: Tự động gỡ cấm chat, mở lại ô nhập bình luận và thông báo thành công.
+  // =========================================================================
+  useEffect(() => {
+    if (!streamData.isBlocked) {
+      setBanCountdown(null);
+      return;
+    }
+
+    const updateCountdown = () => {
+      let targetTime = null;
+      if (streamData.chatBannedUntilIso) {
+        targetTime = new Date(streamData.chatBannedUntilIso).getTime();
+      } else if (streamData.chatBannedUntil) {
+        const parts = streamData.chatBannedUntil.match(/(\d{2}):(\d{2})\s+(\d{2})\/(\d{2})\/(\d{4})/);
+        if (parts) {
+          targetTime = new Date(parts[5], parts[4] - 1, parts[3], parts[1], parts[2]).getTime();
+        }
+      }
+
+      // Kiểm tra trong localStorage nếu targetTime chưa hợp lệ
+      if (!targetTime || isNaN(targetTime)) {
+        try {
+          const stored = localStorage.getItem("agrimarket_chat_ban_expiry");
+          if (stored) {
+            const parsed = parseInt(stored, 10);
+            if (!isNaN(parsed) && parsed > Date.now()) {
+              targetTime = parsed;
+            }
+          }
+        } catch (e) {}
+      }
+
+      // Nếu hoàn toàn chưa có targetTime (do dữ liệu cũ chưa lưu), tự động khởi tạo mốc 30 phút mặc định
+      if (!targetTime || isNaN(targetTime)) {
+        targetTime = Date.now() + 30 * 60 * 1000;
+        try {
+          localStorage.setItem("agrimarket_chat_ban_expiry", targetTime.toString());
+        } catch (e) {}
+
+        const d = new Date(targetTime);
+        const pad = (n) => String(n).padStart(2, "0");
+        const defaultStr = `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+        setBackendStream((prev) => prev ? {
+          ...prev,
+          chatBannedUntil: prev.chatBannedUntil || defaultStr,
+          chatBannedUntilIso: prev.chatBannedUntilIso || d.toISOString()
+        } : prev);
+      }
+
+      const diff = targetTime - Date.now();
+      if (diff <= 0) {
+        // Hết thời hạn cấm -> Tự động mở khóa
+        setBanCountdown(null);
+        try {
+          localStorage.removeItem("agrimarket_chat_ban_expiry");
+        } catch (e) {}
+        setBackendStream((prev) => prev ? { ...prev, isBlocked: false, chatBannedUntil: null, chatBannedUntilIso: null } : prev);
+        showToast("Tài khoản của bạn đã được mở khóa bình luận. Bạn có thể chat bình thường!", "success");
+      } else {
+        const totalSecs = Math.floor(diff / 1000);
+        const hours = Math.floor(totalSecs / 3600);
+        const mins = Math.floor((totalSecs % 3600) / 60);
+        const secs = totalSecs % 60;
+
+        if (hours > 0) {
+          setBanCountdown(hours + " giờ " + mins + " phút " + (secs < 10 ? "0" + secs : secs) + " giây");
+        } else if (mins > 0) {
+          setBanCountdown(mins + " phút " + (secs < 10 ? "0" + secs : secs) + " giây");
+        } else {
+          setBanCountdown(secs + " giây");
+        }
+      }
+    };
+
+    updateCountdown();
+    const timer = setInterval(updateCountdown, 1000);
+    return () => clearInterval(timer);
+  }, [streamData.isBlocked, streamData.chatBannedUntilIso, streamData.chatBannedUntil]);
+
   // Initialize page variables when streamData changes, and poll for changes in LocalStorage or Backend
   useEffect(() => {
     // Reset states
@@ -113,7 +206,58 @@ const LivestreamPage = () => {
         try {
           const response = await apiClient.get(`/api/livestreams/${id}`);
           const data = response.data;
-          setBackendStream(data);
+
+          // =========================================================================
+          // XỬ LÝ TRẠNG THÁI CẤM BÌNH LUẬN VÀ THỜI GIAN MỞ KHÓA
+          // Đồng bộ với localStorage để đảm bảo luôn hiển thị thời gian còn lại
+          // =========================================================================
+          let isBlocked = !!data.isBlocked;
+          let chatBannedUntil = data.chatBannedUntil;
+          let chatBannedUntilIso = data.chatBannedUntilIso;
+
+          try {
+            const stored = localStorage.getItem("agrimarket_chat_ban_expiry");
+            if (stored) {
+              const expTime = parseInt(stored, 10);
+              if (expTime > Date.now()) {
+                isBlocked = true;
+                if (!chatBannedUntilIso) chatBannedUntilIso = new Date(expTime).toISOString();
+                if (!chatBannedUntil) {
+                  const d = new Date(expTime);
+                  const pad = (n) => String(n).padStart(2, "0");
+                  chatBannedUntil = `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+                }
+              } else {
+                localStorage.removeItem("agrimarket_chat_ban_expiry");
+              }
+            }
+          } catch (e) {}
+
+          // Nếu tài khoản đang bị cấm nhưng chưa có mốc thời gian, tạo mốc mặc định 30 phút
+          if (isBlocked && !chatBannedUntil && !chatBannedUntilIso) {
+            const expTime = Date.now() + 30 * 60 * 1000;
+            const d = new Date(expTime);
+            const pad = (n) => String(n).padStart(2, "0");
+            chatBannedUntil = `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+            chatBannedUntilIso = d.toISOString();
+            try {
+              localStorage.setItem("agrimarket_chat_ban_expiry", expTime.toString());
+            } catch (e) {}
+          } else if (chatBannedUntilIso) {
+            const expTime = new Date(chatBannedUntilIso).getTime();
+            if (!isNaN(expTime) && expTime > Date.now()) {
+              try {
+                localStorage.setItem("agrimarket_chat_ban_expiry", expTime.toString());
+              } catch (e) {}
+            }
+          }
+
+          setBackendStream({
+            ...data,
+            isBlocked,
+            chatBannedUntil,
+            chatBannedUntilIso
+          });
           setAgoraToken(data.token);
           setAgoraAppId(data.appId);
           setAgoraChannelName(data.channelName);
@@ -512,8 +656,12 @@ const LivestreamPage = () => {
       showToast("Phòng chat hiện tại đang khóa. Vui lòng quay lại khi phiên live bắt đầu!", "info");
       return;
     }
+    // Kiểm tra xem tài khoản có đang trong thời gian bị cấm bình luận (do vi phạm từ ngữ) hay không
     if (streamData.isBlocked) {
-      showToast("Bạn đã bị chặn bình luận trong phiên livestream này!", "error");
+      const blockedMsg = streamData.chatBannedUntil
+        ? ("Tài khoản của bạn đang bị tạm cấm bình luận đến " + streamData.chatBannedUntil + " do vi phạm quy tắc cộng đồng!")
+        : "Bạn đã bị chặn bình luận trong phiên livestream này!";
+      showToast(blockedMsg, "error");
       return;
     }
     if (!chatInput.trim()) return;
@@ -527,10 +675,46 @@ const LivestreamPage = () => {
         setChatInput("");
       } catch (err) {
         console.error("Lỗi gửi bình luận lên backend:", err);
-        const errorMsg = typeof err.response?.data === "string" 
-          ? err.response.data 
-          : "Không thể gửi bình luận. Vui lòng thử lại!";
+        const errData = err.response?.data;
+        const errorMsg = typeof errData === "string" 
+          ? errData 
+          : (errData?.message || "Không thể gửi bình luận. Vui lòng thử lại!");
         showToast(errorMsg, "error");
+
+        // Cập nhật ngay lập tức giao diện sang Hộp cảnh báo cấm chat nếu vi phạm
+        if (err.response?.status === 400 || err.response?.status === 403) {
+          if (errData?.chatBannedUntil || errData?.chatBannedUntilIso || errorMsg.includes("cấm") || errorMsg.includes("chặn") || errorMsg.includes("vi phạm")) {
+            let untilStr = errData?.chatBannedUntil;
+            let untilIso = errData?.chatBannedUntilIso;
+            const durationMins = errData?.durationMinutes || 30;
+
+            // Nếu chưa có mốc thời gian cụ thể từ response, tính 30 phút mặc định từ bây giờ
+            if (!untilStr && !untilIso) {
+              const expTime = Date.now() + durationMins * 60 * 1000;
+              const d = new Date(expTime);
+              const pad = (n) => String(n).padStart(2, "0");
+              untilStr = `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+              untilIso = d.toISOString();
+              try {
+                localStorage.setItem("agrimarket_chat_ban_expiry", expTime.toString());
+              } catch (e) {}
+            } else if (untilIso) {
+              const expTime = new Date(untilIso).getTime();
+              if (!isNaN(expTime)) {
+                try {
+                  localStorage.setItem("agrimarket_chat_ban_expiry", expTime.toString());
+                } catch (e) {}
+              }
+            }
+
+            setBackendStream((prev) => ({
+              ...prev,
+              isBlocked: true,
+              chatBannedUntil: untilStr,
+              chatBannedUntilIso: untilIso
+            }));
+          }
+        }
       }
     } else {
       const currentUser = JSON.parse(localStorage.getItem("agrimarket_user")) || { fullName: "Bạn", avatarUrl: "" };
@@ -563,6 +747,25 @@ const LivestreamPage = () => {
       }
     } else {
       showToast("Cảm ơn bạn đã thả tim! ❤️", "success");
+    }
+  };
+
+  // =========================================================================
+  // HÀM KẾT THÚC PHIÊN LIVE DÀNH CHO CHỦ PHÒNG (NÔNG DÂN ĐANG XEM TRÊN TRANG NÀY)
+  // Cho phép nông dân kết thúc trực tiếp buổi live ngay trên giao diện xem live
+  // =========================================================================
+  const handleHostEndLivestream = async () => {
+    if (!window.confirm("Bạn có chắc chắn muốn kết thúc buổi phát trực tiếp này không?")) {
+      return;
+    }
+    try {
+      await apiClient.post(`/api/livestreams/${id}/end`);
+      showToast("Đã kết thúc buổi phát trực tiếp thành công!", "success");
+      setBackendStream((prev) => prev ? { ...prev, status: "ended" } : { status: "ended" });
+    } catch (err) {
+      console.error("Lỗi khi kết thúc livestream:", err);
+      const msg = err.response?.data?.message || (typeof err.response?.data === "string" ? err.response?.data : null) || err.message;
+      showToast("Lỗi khi kết thúc livestream: " + msg, "error");
     }
   };
 
@@ -812,6 +1015,42 @@ const LivestreamPage = () => {
                         TRỰC TIẾP
                       </span>
                     )}
+
+                    {/* Nút Kết thúc Live nhanh dành cho Chủ phòng nông dân */}
+                    {streamData.status === "live" && (() => {
+                      try {
+                        const u = JSON.parse(localStorage.getItem("farmconnect_user")) || JSON.parse(localStorage.getItem("agrimarket_user"));
+                        const isOwner = u && streamData.farmerId && (String(u.id) === String(streamData.farmerId) || String(u.farmerId) === String(streamData.farmerId));
+                        if (isOwner) {
+                          return (
+                            <button
+                              className="btn-host-quick-end"
+                              onClick={handleHostEndLivestream}
+                              title="Dừng buổi phát sóng trực tiếp này"
+                              style={{
+                                backgroundColor: "#ef4444",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "20px",
+                                padding: "4px 12px",
+                                fontSize: "0.75rem",
+                                fontWeight: "700",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "5px",
+                                cursor: "pointer",
+                                boxShadow: "0 2px 8px rgba(239, 68, 68, 0.4)",
+                                marginLeft: "6px"
+                              }}
+                            >
+                              <span style={{ width: "7px", height: "7px", borderRadius: "50%", backgroundColor: "white" }}></span>
+                              Kết thúc Live
+                            </button>
+                          );
+                        }
+                      } catch (e) {}
+                      return null;
+                    })()}
                     {streamData.status === "upcoming" && (
                       <span className="live-status-badge upcoming-badge">
                         LÊN LỊCH
@@ -1182,34 +1421,72 @@ const LivestreamPage = () => {
                 </>
               )}
 
-              {/* Chat Input form */}
-              <form onSubmit={handleSendChat} className="chat-input-row-form">
-                <input
-                  type="text"
-                  placeholder={
-                    streamData.status === "upcoming"
-                      ? "Phòng chat chưa mở..."
-                      : streamData.isBlocked
-                      ? "Bạn đã bị chặn bình luận trong phiên live này"
-                      : "Nhập tin nhắn..."
-                  }
-                  value={chatInput}
-                  disabled={streamData.status === "upcoming" || streamData.isBlocked}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  className="chat-text-input-field"
-                  style={streamData.isBlocked ? { backgroundColor: "#fee2e2", color: "#991b1b", border: "1px solid #fca5a5" } : {}}
-                />
-                <button
-                  type="submit"
-                  className="chat-submit-action-btn"
-                  disabled={streamData.status === "upcoming" || streamData.isBlocked}
-                  title="Gửi tin nhắn"
-                >
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                  </svg>
-                </button>
-              </form>
+              {/* =========================================================================
+                  KHU VỰC NHẬP BÌNH LUẬN HOẶC HIỂN THỊ THÔNG BÁO BỊ CẤM CHAT
+                  Nếu bị cấm: Thay ô nhập bằng Hộp cảnh báo to rõ, không bị khuất chữ
+                  ========================================================================= */}
+              {streamData.isBlocked ? (
+                <div className="chat-banned-alert-box">
+                  <div className="banned-alert-header">
+                    <div className="banned-alert-icon">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                      </svg>
+                    </div>
+                    <div className="banned-alert-title">
+                      Tài khoản đang bị tạm cấm bình luận
+                    </div>
+                  </div>
+
+                  <div className="banned-alert-body">
+                    <div className="banned-alert-reason">
+                      Bạn đã vi phạm quy tắc từ ngữ trong livestream.
+                    </div>
+
+                    <div className="banned-countdown-badge">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                      </svg>
+                      <span>
+                        Được chat lại sau: <span className="countdown-highlight">{banCountdown || "30 phút 00 giây"}</span>
+                      </span>
+                    </div>
+
+                    {streamData.chatBannedUntil && (
+                      <div className="banned-expiry-time">
+                        Thời điểm tự động mở: <strong>{streamData.chatBannedUntil}</strong>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleSendChat} className="chat-input-row-form">
+                  <input
+                    type="text"
+                    placeholder={
+                      streamData.status === "upcoming"
+                        ? "Phòng chat chưa mở..."
+                        : "Nhập tin nhắn..."
+                    }
+                    value={chatInput}
+                    disabled={streamData.status === "upcoming"}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    className="chat-text-input-field"
+                  />
+                  <button
+                    type="submit"
+                    className="chat-submit-action-btn"
+                    disabled={streamData.status === "upcoming"}
+                    title="Gửi tin nhắn"
+                  >
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                    </svg>
+                  </button>
+                </form>
+              )}
             </div>
 
             {/* Featured Products list panel */}

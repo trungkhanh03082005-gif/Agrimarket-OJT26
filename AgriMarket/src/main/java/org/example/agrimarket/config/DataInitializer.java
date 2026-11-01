@@ -30,9 +30,22 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired(required = false)
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
     @Override
     @Transactional
     public void run(String... args) throws Exception {
+        // Ensure chat moderation columns exist in users table
+        if (jdbcTemplate != null) {
+            try {
+                jdbcTemplate.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS chat_banned_until TIMESTAMP;");
+                jdbcTemplate.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS chat_violation_count INT DEFAULT 0;");
+                jdbcTemplate.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_chat_banned BOOLEAN DEFAULT FALSE;");
+            } catch (Exception e) {
+                System.err.println(">>> DataInitializer: Note on users columns: " + e.getMessage());
+            }
+        }
         // ========== Ensure default admin account exists ==========
         String adminEmail = "admin@agrimarket.com";
         if (adminRepository.findByEmail(adminEmail).isEmpty()) {
