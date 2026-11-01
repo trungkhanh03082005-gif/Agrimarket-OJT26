@@ -30,7 +30,7 @@ import Header from "../../components/common/Header/Header";
 import Footer from "../../components/common/Footer/Footer";
 
 // Import local images
-import heroBanner from "./assets/hero_banner.png";
+import heroBanner from "./assets/home_background.jpg";
 
 const MAIN_CATEGORIES = [
   { name: "Cây lương thực", icon: <Wheat size={20} /> },
