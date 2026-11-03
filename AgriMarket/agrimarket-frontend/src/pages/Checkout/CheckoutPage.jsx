@@ -132,10 +132,8 @@ export default function CheckoutPage() {
 
     // Address selection states
     const [provinces, setProvinces] = useState([]);
-    const [districts, setDistricts] = useState([]);
     const [wards, setWards] = useState([]);
     const [addrProvince, setAddrProvince] = useState({ code: "", name: "" });
-    const [addrDistrict, setAddrDistrict] = useState({ code: "", name: "" });
     const [addrWard, setAddrWard] = useState({ code: "", name: "" });
     const [addrStreet, setAddrStreet] = useState("");
     const [profileData, setProfileData] = useState(null);
@@ -495,16 +493,16 @@ export default function CheckoutPage() {
     }, [checkoutData]);
 
     const currentFullAddress = useMemo(() => {
-        if (!addrStreet.trim() || !addrWard.name || !addrDistrict.name || !addrProvince.name) {
+        if (!addrStreet.trim() || !addrWard.name || !addrProvince.name) {
             return "";
         }
         return addressService.formatAddress({
             street: addrStreet.trim(),
             ward: addrWard.name,
-            district: addrDistrict.name,
+            district: "",
             province: addrProvince.name
         });
-    }, [addrStreet, addrWard.name, addrDistrict.name, addrProvince.name]);
+    }, [addrStreet, addrWard.name, addrProvince.name]);
 
     useEffect(() => {
         if (currentFullAddress && selectedProductIdsRef.current.length > 0 && checkoutData) {
@@ -545,10 +543,10 @@ export default function CheckoutPage() {
         }
     }, [currentFullAddress]);
 
-    // Load provinces on mount
+    // Load current administrative units (province and ward).
     useEffect(() => {
         const initProvinces = async () => {
-            const provs = await addressService.getProvinces();
+            const provs = await addressService.getProvincesV2();
             setProvinces(provs);
         };
         initProvinces();
@@ -587,27 +585,30 @@ export default function CheckoutPage() {
 
                     // Merge unique addresses
                     const merged = [];
-
-                    // Add default address from profile
-                    const defaultAddrObj = profileAddr.find(a => a.isDefault);
-                    if (defaultAddrObj) {
-                        merged.push({
-                            ...defaultAddrObj,
-                            isDefault: true,
-                        });
-                    }
-
-                    // Add previous order addresses (DO NOT add other profile addresses)
-                    orderAddr.forEach(a => {
-                        if (a.address && !merged.some(m => m.address.trim().toLowerCase() === a.address.trim().toLowerCase())) {
-                            // Find corresponding coordinates in DB profile addresses if any
-                            const matchInDB = profileAddr.find(pa => pa.address.trim().toLowerCase() === a.address.trim().toLowerCase());
-                            if (matchInDB) {
-                                a.latitude = matchInDB.latitude;
-                                a.longitude = matchInDB.longitude;
-                            }
-                            merged.push(a);
+                    const addUniqueAddress = (address) => {
+                        if (
+                            address.address &&
+                            !merged.some((item) => item.address.trim().toLowerCase() === address.address.trim().toLowerCase())
+                        ) {
+                            merged.push(address);
                         }
+                    };
+
+                    // Keep the profile address book (default first) ahead of old order addresses.
+                    [...profileAddr]
+                        .sort((a, b) => Number(Boolean(b.isDefault)) - Number(Boolean(a.isDefault)))
+                        .forEach(addUniqueAddress);
+
+                    // Add previous order addresses as additional delivery choices.
+                    orderAddr.forEach(a => {
+                        const matchInDB = profileAddr.find(
+                            (profileAddress) => profileAddress.address.trim().toLowerCase() === a.address.trim().toLowerCase()
+                        );
+                        if (matchInDB) {
+                            a.latitude = matchInDB.latitude;
+                            a.longitude = matchInDB.longitude;
+                        }
+                        addUniqueAddress(a);
                     });
 
                     // Geocode sequentially any historical address that has null coordinates
@@ -635,8 +636,15 @@ export default function CheckoutPage() {
 
                     // Determine index of default address
                     let selectedIdx = resolvedAddresses.findIndex(m => m.isDefault);
+                    if (selectedIdx === -1 && profileAddr.length > 0) {
+                        selectedIdx = resolvedAddresses.findIndex(
+                            (address) => profileAddr.some(
+                                (profileAddress) => profileAddress.address === address.address
+                            )
+                        );
+                    }
                     if (selectedIdx === -1 && resolvedAddresses.length > 0) {
-                        selectedIdx = 0; // fallback to first
+                        selectedIdx = 0;
                     }
 
                     setSelectedAddressIndex(selectedIdx);
@@ -646,8 +654,8 @@ export default function CheckoutPage() {
                     if (activeAddr) {
                         setRecipientName(activeAddr.receiverName || profile.fullName || "");
                         setRecipientPhone(activeAddr.phone || profile.phone || "");
-                        setLatitude(activeAddr.latitude || null);
-                        setLongitude(activeAddr.longitude || null);
+                        setLatitude(activeAddr.latitude ?? null);
+                        setLongitude(activeAddr.longitude ?? null);
 
                         const parsed = addressService.parseAddress(activeAddr.address);
                         setAddrStreet(parsed.street || "");
@@ -659,31 +667,42 @@ export default function CheckoutPage() {
                                 const provCode = provinceMatch.code;
                                 setAddrProvince({ code: String(provCode), name: provinceMatch.name });
 
-                                const dists = await addressService.getDistricts(provCode);
-                                setDistricts(dists);
+                                const provinceWards = await addressService.getWardsByProvinceV2(provCode);
+                                setWards(provinceWards);
 
-                                const districtMatch = addressService.findMatchingUnit(dists, parsed.district);
-
-                                if (districtMatch) {
-                                    const distCode = districtMatch.code;
-                                    setAddrDistrict({ code: String(distCode), name: districtMatch.name });
-
-                                    const wds = await addressService.getWards(distCode);
-                                    setWards(wds);
-
-                                    const wardMatch = addressService.findMatchingUnit(wds, parsed.ward);
-
-                                    if (wardMatch) {
-                                        setAddrWard({ code: String(wardMatch.code), name: wardMatch.name });
-                                    }
+                                const legacyWard = parsed.ward || parsed.district;
+                                let wardMatch = addressService.findMatchingUnit(provinceWards, legacyWard);
+                                if (!wardMatch && legacyWard) {
+                                    const legacyMatches = await addressService.lookupLegacyWard(legacyWard);
+                                    const legacyMatch = legacyMatches?.find(
+                                        (item) => String(item.ward?.province_code) === String(provCode)
+                                    );
+                                    wardMatch = legacyMatch
+                                        ? provinceWards.find((ward) => String(ward.code) === String(legacyMatch.ward.code))
+                                        : null;
                                 }
+                                setAddrWard(wardMatch
+                                    ? { code: String(wardMatch.code), name: wardMatch.name }
+                                    : { code: "", name: "" });
+                            } else {
+                                setAddrProvince({ code: "", name: "" });
+                                setAddrWard({ code: "", name: "" });
+                                setWards([]);
                             }
+                        } else {
+                            setAddrProvince({ code: "", name: "" });
+                            setAddrWard({ code: "", name: "" });
+                            setWards([]);
                         }
                     } else {
                         setRecipientName(profile.fullName || "");
                         setRecipientPhone(profile.phone || "");
                         setLatitude(null);
                         setLongitude(null);
+                        setAddrProvince({ code: "", name: "" });
+                        setAddrWard({ code: "", name: "" });
+                        setAddrStreet("");
+                        setWards([]);
                     }
                 }
             } catch (err) {
@@ -701,39 +720,20 @@ export default function CheckoutPage() {
         const provinceObj = provinces.find((p) => p.code === parseInt(provinceCode));
         if (provinceObj) {
             setAddrProvince({ code: provinceCode, name: provinceObj.name });
-            setAddrDistrict({ code: "", name: "" });
             setAddrWard({ code: "", name: "" });
-            setWards([]);
             const provCoords = addressService.getProvinceCoordinates(provinceObj.name);
             if (provCoords) {
                 setLatitude(provCoords[0]);
                 setLongitude(provCoords[1]);
             }
-            const dists = await addressService.getDistricts(provinceCode);
-            setDistricts(dists);
+            const provinceWards = await addressService.getWardsByProvinceV2(provinceCode);
+            setWards(provinceWards);
         } else {
             setAddrProvince({ code: "", name: "" });
-            setAddrDistrict({ code: "", name: "" });
             setAddrWard({ code: "", name: "" });
-            setDistricts([]);
             setWards([]);
             setLatitude(null);
             setLongitude(null);
-        }
-    };
-
-    const handleDistrictChange = async (e) => {
-        const districtCode = e.target.value;
-        const districtObj = districts.find((d) => d.code === parseInt(districtCode));
-        if (districtObj) {
-            setAddrDistrict({ code: districtCode, name: districtObj.name });
-            setAddrWard({ code: "", name: "" });
-            const wds = await addressService.getWards(districtCode);
-            setWards(wds);
-        } else {
-            setAddrDistrict({ code: "", name: "" });
-            setAddrWard({ code: "", name: "" });
-            setWards([]);
         }
     };
 
@@ -753,12 +753,10 @@ export default function CheckoutPage() {
             setRecipientName("");
             setRecipientPhone("");
             setAddrProvince({ code: "", name: "" });
-            setAddrDistrict({ code: "", name: "" });
             setAddrWard({ code: "", name: "" });
             setAddrStreet("");
             setLatitude(null);
             setLongitude(null);
-            setDistricts([]);
             setWards([]);
             return;
         }
@@ -766,8 +764,8 @@ export default function CheckoutPage() {
         const selected = savedAddresses[index];
         setRecipientName(selected.receiverName || "");
         setRecipientPhone(selected.phone || "");
-        setLatitude(selected.latitude || null);
-        setLongitude(selected.longitude || null);
+        setLatitude(selected.latitude ?? null);
+        setLongitude(selected.longitude ?? null);
 
         const parsed = addressService.parseAddress(selected.address);
         setAddrStreet(parsed.street || "");
@@ -779,37 +777,32 @@ export default function CheckoutPage() {
                 const provCode = provinceMatch.code;
                 setAddrProvince({ code: String(provCode), name: provinceMatch.name });
 
-                const dists = await addressService.getDistricts(provCode);
-                setDistricts(dists);
+                const provinceWards = await addressService.getWardsByProvinceV2(provCode);
+                setWards(provinceWards);
 
-                const districtMatch = addressService.findMatchingUnit(dists, parsed.district);
-
-                if (districtMatch) {
-                    const distCode = districtMatch.code;
-                    setAddrDistrict({ code: String(distCode), name: districtMatch.name });
-
-                    const wds = await addressService.getWards(distCode);
-                    setWards(wds);
-
-                    const wardMatch = addressService.findMatchingUnit(wds, parsed.ward);
-
-                    if (wardMatch) {
-                        setAddrWard({ code: String(wardMatch.code), name: wardMatch.name });
-                    } else {
-                        setAddrWard({ code: "", name: "" });
-                    }
-                } else {
-                    setAddrDistrict({ code: "", name: "" });
-                    setAddrWard({ code: "", name: "" });
-                    setWards([]);
+                const legacyWard = parsed.ward || parsed.district;
+                let wardMatch = addressService.findMatchingUnit(provinceWards, legacyWard);
+                if (!wardMatch && legacyWard) {
+                    const legacyMatches = await addressService.lookupLegacyWard(legacyWard);
+                    const legacyMatch = legacyMatches?.find(
+                        (item) => String(item.ward?.province_code) === String(provCode)
+                    );
+                    wardMatch = legacyMatch
+                        ? provinceWards.find((ward) => String(ward.code) === String(legacyMatch.ward.code))
+                        : null;
                 }
+                setAddrWard(wardMatch
+                    ? { code: String(wardMatch.code), name: wardMatch.name }
+                    : { code: "", name: "" });
             } else {
                 setAddrProvince({ code: "", name: "" });
-                setAddrDistrict({ code: "", name: "" });
                 setAddrWard({ code: "", name: "" });
-                setDistricts([]);
                 setWards([]);
             }
+        } else {
+            setAddrProvince({ code: "", name: "" });
+            setAddrWard({ code: "", name: "" });
+            setWards([]);
         }
     };
 
@@ -840,60 +833,25 @@ export default function CheckoutPage() {
                 if (provinceMatch) {
                     const provCode = provinceMatch.code;
                     const isProvinceChanged = addrProvince.code !== String(provCode);
-                    if (isProvinceChanged) {
-                        setAddrProvince({ code: String(provCode), name: provinceMatch.name });
+                    setAddrProvince({ code: String(provCode), name: provinceMatch.name });
+
+                    const currentWards = isProvinceChanged || wards.length === 0
+                        ? await addressService.getWardsByProvinceV2(provCode)
+                        : wards;
+                    if (isProvinceChanged || wards.length === 0) {
+                        setWards(currentWards);
                     }
 
-                    // Load and Match District
-                    let dists = districts;
-                    if (isProvinceChanged || dists.length === 0) {
-                        dists = await addressService.getDistricts(provCode);
-                        setDistricts(dists);
-                    }
-
-                    const districtCandidates = [
-                        geoResult.district,
+                    const wardCandidates = [
                         geoResult.ward,
-                        ...(geoResult.districtCandidates || [])
+                        geoResult.district,
+                        ...(geoResult.wardCandidates || [])
                     ].filter(Boolean);
-
-                    const districtMatch = addressService.findMatchingUnit(dists, districtCandidates);
-
-                    if (districtMatch) {
-                        const distCode = districtMatch.code;
-                        const isDistrictChanged = addrDistrict.code !== String(distCode);
-                        if (isDistrictChanged || isProvinceChanged) {
-                            setAddrDistrict({ code: String(distCode), name: districtMatch.name });
-                        }
-
-                        // Load and Match Ward
-                        let wds = wards;
-                        if (isDistrictChanged || isProvinceChanged || wds.length === 0) {
-                            wds = await addressService.getWards(distCode);
-                            setWards(wds);
-                        }
-
-                        const wardCandidates = [
-                            geoResult.ward,
-                            geoResult.district,
-                            ...(geoResult.wardCandidates || [])
-                        ].filter(Boolean);
-
-                        const wardMatch = addressService.findMatchingUnit(wds, wardCandidates);
-
-                        if (wardMatch) {
-                            setAddrWard({ code: String(wardMatch.code), name: wardMatch.name });
-                        } else {
-                            if (isDistrictChanged || isProvinceChanged) {
-                                setAddrWard({ code: "", name: "" });
-                            }
-                        }
-                    } else {
-                        if (isProvinceChanged) {
-                            setAddrDistrict({ code: "", name: "" });
-                            setAddrWard({ code: "", name: "" });
-                            setWards([]);
-                        }
+                    const wardMatch = addressService.findMatchingUnit(currentWards, wardCandidates);
+                    if (wardMatch) {
+                        setAddrWard({ code: String(wardMatch.code), name: wardMatch.name });
+                    } else if (isProvinceChanged) {
+                        setAddrWard({ code: "", name: "" });
                     }
                 }
             }
@@ -921,9 +879,9 @@ export default function CheckoutPage() {
                 formErrors.recipientAddress = "Vui lòng chọn địa chỉ nhận hàng";
             }
         } else {
-            if (!addrProvince.code || !addrDistrict.code || !addrWard.code || !addrStreet.trim()) {
-                formErrors.recipientAddress = "Vui lòng nhập đầy đủ địa chỉ giao hàng 4 cấp";
-            } else if (!latitude || !longitude) {
+            if (!addrProvince.code || !addrWard.code || !addrStreet.trim()) {
+                formErrors.recipientAddress = "Vui lòng nhập đầy đủ địa chỉ (Tỉnh/Thành phố, Phường/Xã, Số nhà/Tên đường)";
+            } else if (latitude === null || longitude === null) {
                 formErrors.recipientAddress = "Vui lòng chọn vị trí của bạn trên bản đồ";
             }
         }
@@ -969,7 +927,7 @@ export default function CheckoutPage() {
                 : addressService.formatAddress({
                     street: addrStreet.trim(),
                     ward: addrWard.name,
-                    district: addrDistrict.name,
+                    district: "",
                     province: addrProvince.name,
                 });
 
@@ -1465,7 +1423,7 @@ export default function CheckoutPage() {
                                                             {addressService.formatAddress({
                                                                 street: addrStreet,
                                                                 ward: addrWard.name,
-                                                                district: addrDistrict.name,
+                                                                district: "",
                                                                 province: addrProvince.name
                                                             }) || "Vui lòng nhập chi tiết địa chỉ bên dưới"}
                                                         </span>
@@ -1614,31 +1572,19 @@ export default function CheckoutPage() {
                                             </div>
 
                                             <div className="form-group">
-                                                <label>Quận / Huyện <span className="req-star">*</span></label>
+                                                <label>Phường / Xã <span className="req-star">*</span></label>
                                                 <SearchableSelect
-                                                    options={districts}
-                                                    value={addrDistrict.code}
-                                                    onChange={handleDistrictChange}
+                                                    options={wards}
+                                                    value={addrWard.code}
+                                                    onChange={handleWardChange}
                                                     disabled={!addrProvince.code}
-                                                    placeholder="Chọn Quận / Huyện"
+                                                    placeholder="Chọn Phường / Xã"
                                                     className={errors.recipientAddress ? "input-err" : ""}
                                                 />
                                             </div>
                                         </div>
 
                                         <div className="form-group-row">
-                                            <div className="form-group">
-                                                <label>Phường / Xã <span className="req-star">*</span></label>
-                                                <SearchableSelect
-                                                    options={wards}
-                                                    value={addrWard.code}
-                                                    onChange={handleWardChange}
-                                                    disabled={!addrDistrict.code}
-                                                    placeholder="Chọn Phường / Xã"
-                                                    className={errors.recipientAddress ? "input-err" : ""}
-                                                />
-                                            </div>
-
                                             <div className="form-group">
                                                 <label>Số nhà / Tên đường <span className="req-star">*</span></label>
                                                 <input
@@ -1661,7 +1607,7 @@ export default function CheckoutPage() {
                                                 defaultAddress={addressService.formatAddress({
                                                     street: addrStreet.trim(),
                                                     ward: addrWard.name,
-                                                    district: addrDistrict.name,
+                                                    district: "",
                                                     province: addrProvince.name,
                                                 })}
                                             />

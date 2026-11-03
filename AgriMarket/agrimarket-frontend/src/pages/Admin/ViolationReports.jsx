@@ -35,7 +35,10 @@ import {
     Clock,
     X,
     Check,
-    Video
+    Video,
+    ChevronLeft,
+    ChevronRight,
+    ClipboardList
 } from "lucide-react";
 import "./AdminStyles.css";
 import "./ViolationReports.css";
@@ -280,6 +283,7 @@ export default function ViolationReports() {
                 <main className="admin-page-body violation-page-body">
                     <div className="violation-title-row">
                         <div>
+                            <span className="violation-page-eyebrow"><ClipboardList size={15} /> Trung tâm kiểm duyệt</span>
                             <h2>Quản lý báo cáo vi phạm</h2>
                             <p>
                                 Theo dõi, kiểm tra và xử lý các báo cáo vi phạm từ người dùng
@@ -288,29 +292,40 @@ export default function ViolationReports() {
                         </div>
 
                         <div className="violation-title-actions">
-                            <button className="btn-admin-outline" onClick={fetchReports}>
-                                Làm mới
+                            <button className="btn-admin-outline violation-refresh-button" onClick={fetchReports} disabled={loading}>
+                                <RefreshCw size={16} className={loading ? "is-spinning" : ""} />
+                                {loading ? "Đang tải" : "Làm mới"}
                             </button>
                         </div>
                     </div>
 
+                    <div className="violation-stats-heading">
+                        <div>
+                            <h3>Tổng quan trạng thái</h3>
+                            <p>Số liệu trong trang báo cáo hiện tại</p>
+                        </div>
+                        <span>Trang {currentPage} / {totalPages}</span>
+                    </div>
+
                     <section className="violation-stats-grid">
                         <div className="violation-stat-card pending">
-                            <div className="stat-icon"><Hourglass size={28} /></div>
-                            <strong>{reportStats.pending}</strong>
-                            <span>Đang chờ xử lý</span>
+                            <div className="stat-icon"><Hourglass size={21} /></div>
+                            <div><strong>{reportStats.pending}</strong><span>Đang chờ</span></div>
+                        </div>
+
+                        <div className="violation-stat-card processing">
+                            <div className="stat-icon"><Activity size={21} /></div>
+                            <div><strong>{reportStats.reviewing}</strong><span>Đang xem xét</span></div>
                         </div>
 
                         <div className="violation-stat-card resolved">
-                            <div className="stat-icon"><CheckCircle2 size={28} /></div>
-                            <strong>{reportStats.resolved}</strong>
-                            <span>Đã xử lý</span>
+                            <div className="stat-icon"><CheckCircle2 size={21} /></div>
+                            <div><strong>{reportStats.resolved}</strong><span>Đã xử lý</span></div>
                         </div>
 
                         <div className="violation-stat-card rejected">
-                            <div className="stat-icon"><XCircle size={28} /></div>
-                            <strong>{reportStats.rejected}</strong>
-                            <span>Đã từ chối</span>
+                            <div className="stat-icon"><XCircle size={21} /></div>
+                            <div><strong>{reportStats.rejected}</strong><span>Đã từ chối</span></div>
                         </div>
                     </section>
 
@@ -322,7 +337,10 @@ export default function ViolationReports() {
                                 placeholder="Tìm theo mã báo cáo, lý do, người gửi hoặc đối tượng..."
                                 className="filter-search-input"
                                 value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                    setCurrentPage(1);
+                                }}
                             />
                         </div>
 
@@ -332,7 +350,10 @@ export default function ViolationReports() {
                                 <select
                                     className="filter-select"
                                     value={filterTargetType}
-                                    onChange={(e) => setFilterTargetType(e.target.value)}
+                                    onChange={(e) => {
+                                        setFilterTargetType(e.target.value);
+                                        setCurrentPage(1);
+                                    }}
                                 >
                                     <option value="all">Tất cả đối tượng</option>
                                     <option value="product">Sản phẩm</option>
@@ -346,7 +367,10 @@ export default function ViolationReports() {
                                 <select
                                     className="filter-select"
                                     value={filterStatus}
-                                    onChange={(e) => setFilterStatus(e.target.value)}
+                                    onChange={(e) => {
+                                        setFilterStatus(e.target.value);
+                                        setCurrentPage(1);
+                                    }}
                                 >
                                     <option value="all">Tất cả trạng thái</option>
                                     <option value="pending">Đang chờ</option>
@@ -363,8 +387,9 @@ export default function ViolationReports() {
                             <div className="violation-card-header">
                                 <div>
                                     <h3>Danh sách báo cáo</h3>
-                                    <p>{filteredReports.length} báo cáo phù hợp</p>
+                                    <p>{filteredReports.length} báo cáo trong trang này</p>
                                 </div>
+                                <span className="violation-page-count">{currentPage} / {totalPages}</span>
                             </div>
 
                             <div className="violation-card-list">
@@ -414,6 +439,28 @@ export default function ViolationReports() {
                                                         Gửi bởi: {report.reporterName}
                                                     </span>
                                                 )}
+                                            </div>
+
+                                            <div className="violation-pagination">
+                                                <span>Trang {currentPage} trên {totalPages}</span>
+                                                <div>
+                                                    <button
+                                                        type="button"
+                                                        aria-label="Trang trước"
+                                                        onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                                                        disabled={loading || currentPage <= 1}
+                                                    >
+                                                        <ChevronLeft size={17} />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        aria-label="Trang sau"
+                                                        onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                                                        disabled={loading || currentPage >= totalPages}
+                                                    >
+                                                        <ChevronRight size={17} />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     ))
