@@ -54,8 +54,13 @@ const updateProfile = async (profileData, targetRole = null) => {
 
   if (role === USER_ROLES.CUSTOMER) {
     const response = await apiClient.put(`/api/customers/${normalizedUser.id}`, profileData);
-    saveLocalUser(response.data);
-    return normalizeProfileData(response.data);
+    const updatedUser = {
+      ...currentUser,
+      ...response.data,
+      role: normalizedUser.role,
+    };
+    saveLocalUser(updatedUser);
+    return normalizeProfileData(updatedUser);
   }
 
   if (role === USER_ROLES.FARMER) {

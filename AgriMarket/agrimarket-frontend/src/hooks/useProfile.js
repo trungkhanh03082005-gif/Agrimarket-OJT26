@@ -38,9 +38,9 @@ const useProfile = () => {
     }
   };
 
-  const updateProfile = async (payload) => {
+  const updateProfile = async (payload, targetRole = null) => {
     try {
-      const updatedProfile = await profileService.updateProfile(payload);
+      const updatedProfile = await profileService.updateProfile(payload, targetRole);
       setProfile(updatedProfile);
       return updatedProfile;
     } catch (error) {

@@ -42,10 +42,8 @@ const EditProfile = () => {
 
   // Address States
   const [provinces, setProvinces] = useState([]);
-  const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
   const [addrProvince, setAddrProvince] = useState({ code: "", name: "" });
-  const [addrDistrict, setAddrDistrict] = useState({ code: "", name: "" });
   const [addrWard, setAddrWard] = useState({ code: "", name: "" });
   const [addrStreet, setAddrStreet] = useState("");
   const [latitude, setLatitude] = useState(null);
@@ -66,7 +64,7 @@ const EditProfile = () => {
           setAddrStreet(geoResult.street);
         }
 
-        // Match Province/City
+        // Match province/city
         const provinceCandidates = [
           geoResult.province,
           geoResult.city,
@@ -78,60 +76,25 @@ const EditProfile = () => {
         if (provinceMatch) {
           const provCode = provinceMatch.code;
           const isProvinceChanged = addrProvince.code !== String(provCode);
-          if (isProvinceChanged) {
-            setAddrProvince({ code: String(provCode), name: provinceMatch.name });
+          setAddrProvince({ code: String(provCode), name: provinceMatch.name });
+
+          const currentWards = isProvinceChanged || wards.length === 0
+            ? await addressService.getWardsByProvinceV2(provCode)
+            : wards;
+          if (isProvinceChanged || wards.length === 0) {
+            setWards(currentWards);
           }
 
-          // Load and Match District
-          let dists = districts;
-          if (isProvinceChanged || dists.length === 0) {
-            dists = await addressService.getDistricts(provCode);
-            setDistricts(dists);
-          }
-
-          const districtCandidates = [
-            geoResult.district,
+          const wardCandidates = [
             geoResult.ward,
-            ...(geoResult.districtCandidates || [])
+            geoResult.district,
+            ...(geoResult.wardCandidates || [])
           ].filter(Boolean);
-
-          const districtMatch = addressService.findMatchingUnit(dists, districtCandidates);
-
-          if (districtMatch) {
-            const distCode = districtMatch.code;
-            const isDistrictChanged = addrDistrict.code !== String(distCode);
-            if (isDistrictChanged || isProvinceChanged) {
-              setAddrDistrict({ code: String(distCode), name: districtMatch.name });
-            }
-
-            // Load and Match Ward
-            let wds = wards;
-            if (isDistrictChanged || isProvinceChanged || wds.length === 0) {
-              wds = await addressService.getWards(distCode);
-              setWards(wds);
-            }
-
-            const wardCandidates = [
-              geoResult.ward,
-              geoResult.district,
-              ...(geoResult.wardCandidates || [])
-            ].filter(Boolean);
-
-            const wardMatch = addressService.findMatchingUnit(wds, wardCandidates);
-
-            if (wardMatch) {
-              setAddrWard({ code: String(wardMatch.code), name: wardMatch.name });
-            } else {
-              if (isDistrictChanged || isProvinceChanged) {
-                setAddrWard({ code: "", name: "" });
-              }
-            }
-          } else {
-            if (isProvinceChanged) {
-              setAddrDistrict({ code: "", name: "" });
-              setAddrWard({ code: "", name: "" });
-              setWards([]);
-            }
+          const wardMatch = addressService.findMatchingUnit(currentWards, wardCandidates);
+          if (wardMatch) {
+            setAddrWard({ code: String(wardMatch.code), name: wardMatch.name });
+          } else if (isProvinceChanged) {
+            setAddrWard({ code: "", name: "" });
           }
         }
       }
@@ -140,11 +103,14 @@ const EditProfile = () => {
     }
   };
 
-  // Load provinces on mount
+  // Load the current province list (the administrative model no longer has districts).
   useEffect(() => {
     const initProvinces = async () => {
-      const provs = await addressService.getProvinces();
+      const provs = await addressService.getProvincesV2();
       setProvinces(provs);
+      if (provs.length === 0) {
+        setFormMessage("Không thể tải danh sách tỉnh/thành phố. Vui lòng tải lại trang.");
+      }
     };
     initProvinces();
   }, []);
@@ -153,10 +119,11 @@ const EditProfile = () => {
   useEffect(() => {
     if (!profile || provinces.length === 0) return;
 
-    const rawAddress = profile.addresses?.[0]?.address || "";
+    const defaultAddress = profile.addresses?.find((address) => address.isDefault) || profile.addresses?.[0];
+    const rawAddress = defaultAddress?.address || "";
 
-    const initLat = profile.addresses?.[0]?.latitude || null;
-    const initLon = profile.addresses?.[0]?.longitude || null;
+    const initLat = defaultAddress?.latitude ?? null;
+    const initLon = defaultAddress?.longitude ?? null;
     
     setLatitude(initLat);
     setLongitude(initLon);
@@ -167,9 +134,7 @@ const EditProfile = () => {
       if (!parsed.province) {
         setAddrStreet(rawAddress);
         setAddrProvince({ code: "", name: "" });
-        setAddrDistrict({ code: "", name: "" });
         setAddrWard({ code: "", name: "" });
-        setDistricts([]);
         setWards([]);
         return;
       }
@@ -183,40 +148,28 @@ const EditProfile = () => {
         const provCode = provinceMatch.code;
         setAddrProvince({ code: String(provCode), name: provinceMatch.name });
 
-        // Load districts
-        const dists = await addressService.getDistricts(provCode);
-        setDistricts(dists);
+        const provinceWards = await addressService.getWardsByProvinceV2(provCode);
+        setWards(provinceWards);
 
-        // Find district
-        const districtMatch = addressService.findMatchingUnit(dists, parsed.district);
-
-        if (districtMatch) {
-          const distCode = districtMatch.code;
-          setAddrDistrict({ code: String(distCode), name: districtMatch.name });
-
-          // Load wards
-          const wds = await addressService.getWards(distCode);
-          setWards(wds);
-
-          // Find ward
-          const wardMatch = addressService.findMatchingUnit(wds, parsed.ward);
-
-          if (wardMatch) {
-            setAddrWard({ code: String(wardMatch.code), name: wardMatch.name });
-          } else {
-            setAddrWard({ code: "", name: "" });
-          }
+        const legacyWard = parsed.ward || parsed.district;
+        let wardMatch = addressService.findMatchingUnit(provinceWards, legacyWard);
+        if (!wardMatch && legacyWard) {
+          const legacyMatches = await addressService.lookupLegacyWard(legacyWard);
+          const legacyMatch = legacyMatches?.find(
+            (item) => String(item.ward?.province_code) === String(provCode)
+          );
+          wardMatch = legacyMatch
+            ? provinceWards.find((ward) => String(ward.code) === String(legacyMatch.ward.code))
+            : null;
+        }
+        if (wardMatch) {
+          setAddrWard({ code: String(wardMatch.code), name: wardMatch.name });
         } else {
-          setAddrDistrict({ code: "", name: "" });
           setAddrWard({ code: "", name: "" });
-          setWards([]);
         }
       } else {
-        setAddrStreet(rawAddress);
         setAddrProvince({ code: "", name: "" });
-        setAddrDistrict({ code: "", name: "" });
         setAddrWard({ code: "", name: "" });
-        setDistricts([]);
         setWards([]);
       }
     };
@@ -229,39 +182,20 @@ const EditProfile = () => {
     const provinceObj = provinces.find((p) => p.code === parseInt(provinceCode));
     if (provinceObj) {
       setAddrProvince({ code: provinceCode, name: provinceObj.name });
-      setAddrDistrict({ code: "", name: "" });
       setAddrWard({ code: "", name: "" });
-      setWards([]);
       const provCoords = addressService.getProvinceCoordinates(provinceObj.name);
       if (provCoords) {
         setLatitude(provCoords[0]);
         setLongitude(provCoords[1]);
       }
-      const dists = await addressService.getDistricts(provinceCode);
-      setDistricts(dists);
+      const provinceWards = await addressService.getWardsByProvinceV2(provinceCode);
+      setWards(provinceWards);
     } else {
       setAddrProvince({ code: "", name: "" });
-      setAddrDistrict({ code: "", name: "" });
       setAddrWard({ code: "", name: "" });
-      setDistricts([]);
       setWards([]);
       setLatitude(null);
       setLongitude(null);
-    }
-  };
-
-  const handleDistrictChange = async (e) => {
-    const districtCode = e.target.value;
-    const districtObj = districts.find((d) => d.code === parseInt(districtCode));
-    if (districtObj) {
-      setAddrDistrict({ code: districtCode, name: districtObj.name });
-      setAddrWard({ code: "", name: "" });
-      const wds = await addressService.getWards(districtCode);
-      setWards(wds);
-    } else {
-      setAddrDistrict({ code: "", name: "" });
-      setAddrWard({ code: "", name: "" });
-      setWards([]);
     }
   };
 
@@ -379,11 +313,11 @@ const EditProfile = () => {
     }
 
     if (profile.role === USER_ROLES.CUSTOMER || profile.role === USER_ROLES.FARMER) {
-      if (!addrProvince.code || !addrDistrict.code || !addrWard.code || !addrStreet.trim()) {
-        setFormMessage("Vui lòng nhập đầy đủ địa chỉ 4 cấp (Tỉnh/Thành phố, Quận/Huyện, Phường/Xã, Số nhà/Tên đường).");
+      if (!addrProvince.code || !addrWard.code || !addrStreet.trim()) {
+        setFormMessage("Vui lòng nhập đầy đủ địa chỉ (Tỉnh/Thành phố, Phường/Xã, Số nhà/Tên đường).");
         return;
       }
-      if (!latitude || !longitude) {
+      if (latitude === null || longitude === null) {
         setFormMessage("Vui lòng chọn vị trí trên bản đồ.");
         return;
       }
@@ -395,7 +329,7 @@ const EditProfile = () => {
     const formattedAddress = addressService.formatAddress({
       street: addrStreet.trim(),
       ward: addrWard.name,
-      district: addrDistrict.name,
+      district: "",
       province: addrProvince.name,
     });
 
@@ -540,23 +474,12 @@ const EditProfile = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Quận / Huyện</label>
-                  <SearchableSelect
-                    options={districts}
-                    value={addrDistrict.code}
-                    onChange={handleDistrictChange}
-                    disabled={!addrProvince.code}
-                    placeholder="Chọn Quận / Huyện"
-                  />
-                </div>
-
-                <div className="form-group">
                   <label>Phường / Xã</label>
                   <SearchableSelect
                     options={wards}
                     value={addrWard.code}
                     onChange={handleWardChange}
-                    disabled={!addrDistrict.code}
+                    disabled={!addrProvince.code}
                     placeholder="Chọn Phường / Xã"
                   />
                 </div>
@@ -579,7 +502,7 @@ const EditProfile = () => {
                     defaultAddress={addressService.formatAddress({
                       street: addrStreet.trim(),
                       ward: addrWard.name,
-                      district: addrDistrict.name,
+                      district: "",
                       province: addrProvince.name,
                     })}
                   />
