@@ -6,6 +6,7 @@ import org.example.agrimarket.model.Admin;
 import org.example.agrimarket.model.Customer;
 import org.example.agrimarket.model.Farmer;
 import org.example.agrimarket.model.OtpVerification;
+import org.example.agrimarket.model.User;
 import org.example.agrimarket.repository.AdminRepository;
 import org.example.agrimarket.repository.CustomerRepository;
 import org.example.agrimarket.repository.FarmerRepository;
@@ -87,6 +88,7 @@ public class AuthService {
         if (user == null) {
             throw new RuntimeException("Không tìm thấy tài khoản với email này");
         }
+        ensureAccountCanLogin((User) user);
 
         String hashedPassword;
         if ("admin".equals(resolvedRole)) {
@@ -261,6 +263,7 @@ public class AuthService {
 
         if (user != null) {
             // User exists, login immediately and return successful auth response
+            ensureAccountCanLogin((User) user);
             String token = jwtUtil.generateToken(email, resolvedRole);
             AuthResponse response = new AuthResponse();
             response.setToken(token);
@@ -296,6 +299,15 @@ public class AuthService {
             response.setNewUser(false);
         }
         return response;
+    }
+
+    private void ensureAccountCanLogin(User user) {
+        String status = user.getStatus();
+        if ("banned".equalsIgnoreCase(status)
+                || "suspended".equalsIgnoreCase(status)
+                || "locked".equalsIgnoreCase(status)) {
+            throw new RuntimeException("Tài khoản đã bị khóa");
+        }
     }
 
 

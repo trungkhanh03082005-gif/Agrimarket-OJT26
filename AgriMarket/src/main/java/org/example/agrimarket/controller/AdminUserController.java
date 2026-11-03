@@ -268,6 +268,15 @@ public class AdminUserController {
         if (newStatus == null) {
             return ResponseEntity.badRequest().body("Status is required");
         }
+
+        newStatus = newStatus.trim().toLowerCase();
+        if ("suspended".equals(newStatus) || "locked".equals(newStatus)) {
+            newStatus = "banned";
+        }
+        if (!List.of("active", "banned", "pending").contains(newStatus)) {
+            return ResponseEntity.badRequest().body("Invalid status: " + newStatus);
+        }
+        final String statusToSave = newStatus;
         
         String lowerRole = role.toLowerCase();
         if ("admin".equals(lowerRole)) {
@@ -280,7 +289,7 @@ public class AdminUserController {
             
             // Sync status to Farmer with same email (lock/unlock)
             farmerRepository.findByEmail(c.getEmail()).ifPresent(f -> {
-                f.setStatus(newStatus);
+                f.setStatus(statusToSave);
                 farmerRepository.save(f);
             });
             return ResponseEntity.ok().build();
@@ -309,14 +318,12 @@ public class AdminUserController {
                         e.printStackTrace();
                     }
                 }
-            } else if ("suspended".equalsIgnoreCase(newStatus) || "rejected".equalsIgnoreCase(newStatus)) {
-                f.setVerificationStatus("rejected");
             }
             farmerRepository.save(f);
             
             // Sync status to Customer with same email (lock/unlock)
             customerRepository.findByEmail(f.getEmail()).ifPresent(c -> {
-                c.setStatus(newStatus);
+                c.setStatus(statusToSave);
                 customerRepository.save(c);
             });
             return ResponseEntity.ok().build();

@@ -452,7 +452,13 @@ public class LivestreamController {
         }
 
         Livestream stream = streamOpt.get();
-        if (!stream.getFarmer().getEmail().equals(principal.getName())) {
+        User currentUser = userRepository.findByEmail(principal.getName()).orElse(null);
+        boolean isOwner = currentUser != null && stream.getFarmer() != null
+                && (currentUser.getId().equals(stream.getFarmer().getId())
+                || currentUser.getEmail().equalsIgnoreCase(stream.getFarmer().getEmail()));
+        boolean isAdmin = currentUser instanceof Admin;
+
+        if (!isOwner && !isAdmin) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Bạn không phải chủ phòng livestream này");
         }
 
