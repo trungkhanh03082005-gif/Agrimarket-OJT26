@@ -45,8 +45,17 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // =========================================================================
+    // QUẢN LÝ CẤM BÌNH LUẬN (CHAT MODERATION)
+    // =========================================================================
     @Column(name = "is_chat_banned")
-    private Boolean isChatBanned = false;
+    private Boolean isChatBanned = false; // Đánh dấu tài khoản có đang bị cấm chat hay không
+
+    @Column(name = "chat_banned_until")
+    private LocalDateTime chatBannedUntil; // Thời điểm hết hạn cấm chat (tự động mở khóa khi quá thời gian này)
+
+    @Column(name = "chat_violation_count")
+    private Integer chatViolationCount = 0; // Đếm số lần vi phạm để phạt tăng dần (30p -> 2h -> 24h -> 3 ngày -> 7 ngày)
 
     @PrePersist
     protected void onCreate() {

@@ -1419,36 +1419,64 @@ export const FarmerLivestream = () => {
     setIsConfirmEndOpen(true);
   };
 
+  // =========================================================================
+  // HÀM XỬ LÝ KẾT THÚC PHIÊN PHÁT TRỰC TIẾP
+  // Chức năng:
+  // 1. Gửi yêu cầu kết thúc lên backend, nhận báo cáo kết quả phiên phát.
+  // 2. Nếu phiên live đã kết thúc hoặc trả về 404 thì vẫn hoàn tất thành công, không chặn người dùng.
+  // 3. Tắt camera, mic và ngắt kết nối Agora WebRTC một cách an toàn.
+  // 4. Dọn dẹp session trong localStorage và chuyển sang giao diện báo cáo tổng kết (ended).
+  // =========================================================================
   const executeEndLivestream = async () => {
     if (!liveSessionId) return;
     isEndingRef.current = true;
     try {
-      const response = await apiClient.post(`/api/livestreams/${liveSessionId}/end`);
-      const report = response.data;
-
-      // Stop Agora tracks and leave channel
-      if (rtcRef.current.localAudioTrack) {
-        rtcRef.current.localAudioTrack.close();
-        rtcRef.current.localAudioTrack = null;
+      let report = null;
+      try {
+        const response = await apiClient.post(`/api/livestreams/${liveSessionId}/end`);
+        report = response.data;
+      } catch (apiErr) {
+        console.warn("Lưu ý phản hồi từ API kết thúc livestream:", apiErr);
+        // Dù máy chủ phản hồi mã lỗi hay không tìm thấy, hệ thống vẫn tạo báo cáo mặc định
+        // để đảm bảo nông dân luôn đóng được phòng live và ngắt camera / mic an toàn
+        report = {
+          duration: "00:00",
+          peakViewers: 0,
+          hearts: 0,
+          orders: 0,
+          newFollowers: 0
+        };
       }
-      if (rtcRef.current.localVideoTrack) {
-        rtcRef.current.localVideoTrack.close();
-        rtcRef.current.localVideoTrack = null;
-      }
-      if (rtcRef.current.client) {
-        await rtcRef.current.client.leave();
-        rtcRef.current.client = null;
+
+      // Đóng thiết bị Agora an toàn
+      try {
+        if (rtcRef.current.localAudioTrack) {
+          rtcRef.current.localAudioTrack.close();
+          rtcRef.current.localAudioTrack = null;
+        }
+        if (rtcRef.current.localVideoTrack) {
+          rtcRef.current.localVideoTrack.close();
+          rtcRef.current.localVideoTrack = null;
+        }
+        if (rtcRef.current.client) {
+          await rtcRef.current.client.leave();
+          rtcRef.current.client = null;
+        }
+      } catch (agoraErr) {
+        console.warn("Lỗi đóng thiết bị Agora:", agoraErr);
       }
 
-      setReportStats({
-        duration: report.duration,
-        peakViewers: report.peakViewers,
-        hearts: report.hearts,
-        orders: report.orders,
-        newFollowers: report.newFollowers
-      });
+      if (report) {
+        setReportStats({
+          duration: report.duration || "00:00",
+          peakViewers: report.peakViewers || 0,
+          hearts: report.hearts || 0,
+          orders: report.orders || 0,
+          newFollowers: report.newFollowers || 0
+        });
+      }
 
-      // Clean up localStorage active session
+      // Dọn dẹp session lưu trữ trong localStorage
       try {
         localStorage.removeItem("active_farmer_livestream_session");
         const storedLives = JSON.parse(localStorage.getItem("farmer_custom_livestreams")) || [];
@@ -1465,6 +1493,7 @@ export const FarmerLivestream = () => {
 
       setStreamState("ended");
       window.agoraActiveHostSession = null;
+      showToast("Đã kết thúc phiên phát trực tiếp thành công!", "success");
     } catch (e) {
       console.error(e);
       showToast("Lỗi khi kết thúc livestream: " + e.message, "error");

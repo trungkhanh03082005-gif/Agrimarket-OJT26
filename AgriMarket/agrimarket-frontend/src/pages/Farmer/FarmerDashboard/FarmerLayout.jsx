@@ -86,7 +86,13 @@ const FarmerPiPOverlay = ({ onClose }) => {
     if (!window.confirm("Bạn có chắc chắn muốn kết thúc phiên livestream này?")) return;
 
     try {
-      await apiClient.post(`/api/livestreams/${session.liveSessionId}/end`);
+      try {
+        await apiClient.post(`/api/livestreams/${session.liveSessionId}/end`);
+      } catch (apiErr) {
+        if (apiErr.response?.status !== 404) {
+          console.warn("Lỗi API kết thúc từ PIP:", apiErr);
+        }
+      }
       
       if (session.localAudioTrack) {
         session.localAudioTrack.stop();
@@ -119,7 +125,8 @@ const FarmerPiPOverlay = ({ onClose }) => {
       alert("Đã kết thúc livestream thành công!");
     } catch (e) {
       console.error(e);
-      alert("Lỗi khi kết thúc livestream: " + e.message);
+      const errMsg = e.response?.data?.message || (typeof e.response?.data === "string" ? e.response?.data : null) || e.message;
+      alert("Lỗi khi kết thúc livestream: " + errMsg);
     }
   };
 
