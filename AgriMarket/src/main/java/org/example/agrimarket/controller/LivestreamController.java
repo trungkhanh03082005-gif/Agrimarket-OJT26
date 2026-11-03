@@ -503,12 +503,10 @@ public class LivestreamController {
 
         Livestream stream = streamOpt.get();
         User currentUser = userRepository.findByEmail(principal.getName()).orElse(null);
-
-        // Kiểm tra quyền: Cho phép chủ phòng (khớp email hoặc ID) hoặc Admin hệ thống kết thúc live
-        boolean isOwner = (currentUser != null && stream.getFarmer() != null &&
-                (currentUser.getId().equals(stream.getFarmer().getId()) ||
-                 currentUser.getEmail().equalsIgnoreCase(stream.getFarmer().getEmail())));
-        boolean isAdmin = (currentUser != null && ("ADMIN".equalsIgnoreCase(currentUser.getRole()) || currentUser instanceof Admin));
+        boolean isOwner = currentUser != null && stream.getFarmer() != null
+                && (currentUser.getId().equals(stream.getFarmer().getId())
+                || currentUser.getEmail().equalsIgnoreCase(stream.getFarmer().getEmail()));
+        boolean isAdmin = currentUser instanceof Admin;
 
         if (!isOwner && !isAdmin) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Bạn không phải chủ phòng livestream này");

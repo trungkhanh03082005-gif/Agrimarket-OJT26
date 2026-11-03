@@ -4,6 +4,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.agrimarket.model.User;
+import org.example.agrimarket.repository.UserRepository;
 import org.example.agrimarket.service.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,6 +21,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -52,6 +57,13 @@ public class JwtFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 if (jwtUtil.validateToken(jwt)) {
+                    User user = userRepository.findByEmail(email).orElse(null);
+                    if (user == null || isAccountLocked(user)) {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        response.getWriter().write("Tài khoản đã bị khóa hoặc không còn tồn tại");
+                        return;
+                    }
+
                     String role = jwtUtil.extractRole(jwt);
                     java.util.List<org.springframework.security.core.authority.SimpleGrantedAuthority> authorities = new java.util.ArrayList<>();
                     if (role != null) {
@@ -83,5 +95,12 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isAccountLocked(User user) {
+        String status = user.getStatus();
+        return "banned".equalsIgnoreCase(status)
+                || "suspended".equalsIgnoreCase(status)
+                || "locked".equalsIgnoreCase(status);
     }
 }

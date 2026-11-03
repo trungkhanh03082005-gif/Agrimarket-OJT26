@@ -128,7 +128,7 @@ const UserAccounts = () => {
 
 
   const renderAccountDetailsDashboard = (user) => {
-    const isLocked = user.status === "suspended" || user.status === "banned" || user.status === "locked";
+    const isLocked = ["suspended", "banned", "locked"].includes(user.status?.toLowerCase());
 
     const getRoleLabel = (r) => {
       switch (r) {
@@ -896,7 +896,7 @@ const UserAccounts = () => {
   };
 
   const triggerToggleStatusConfirm = (user) => {
-    const isLocked = user.status === "suspended" || user.status === "banned" || user.status === "locked";
+    const isLocked = ["suspended", "banned", "locked"].includes(user.status?.toLowerCase());
     setConfirmModal({
       isOpen: true,
       title: isLocked ? "Mở khóa tài khoản" : "Khóa tài khoản",
@@ -957,8 +957,8 @@ const UserAccounts = () => {
       // Typically we'd call an endpoint. For now, since it's a simulated or basic reset action:
       showToast(`Đã đặt lại mật khẩu cho ${user.fullName} về mặc định ("Password123") thành công!`);
     } else if (actionType === "toggle_status" && user) {
-      const isLocked = user.status === "suspended" || user.status === "banned" || user.status === "locked";
-      const newStatus = isLocked ? "active" : "suspended";
+      const isLocked = ["suspended", "banned", "locked"].includes(user.status?.toLowerCase());
+      const newStatus = isLocked ? "active" : "banned";
       try {
         await apiClient.put(`/api/admin/users/${user.role}/${user.id}/status`, { status: newStatus });
         showToast(`Đã ${newStatus === "active" ? "mở khóa" : "tạm khóa"} tài khoản ${user.fullName} thành công.`);
@@ -968,48 +968,28 @@ const UserAccounts = () => {
         fetchUsers();
       } catch (err) {
         console.error("Lỗi cập nhật trạng thái:", err);
-        // Mock fallback
-        const updated = users.map(u => {
-          if (u.id === user.id && u.role === user.role) {
-            return { ...u, status: newStatus };
-          }
-          return u;
-        });
-        setUsers(updated);
-        localStorage.setItem("agri_users", JSON.stringify(updated));
-        if (selectedUserForDetails && selectedUserForDetails.id === user.id && selectedUserForDetails.role === user.role) {
-          setSelectedUserForDetails({ ...selectedUserForDetails, status: newStatus });
-        }
-        showToast(`Đã ${newStatus === "active" ? "mở khóa" : "tạm khóa"} tài khoản ${user.fullName} (Chế độ mô phỏng).`);
+        const message = err.response?.data;
+        showToast(typeof message === "string" ? message : "Không thể cập nhật trạng thái tài khoản. Vui lòng thử lại.");
       }
     } else if (actionType === "bulk_suspend") {
       let successCount = 0;
+      let failedCount = 0;
       for (const key of selectedUserIds) {
         const [role, id] = key.split("_");
         try {
-          await apiClient.put(`/api/admin/users/${role}/${id}/status`, { status: "suspended" });
+          await apiClient.put(`/api/admin/users/${role}/${id}/status`, { status: "banned" });
           successCount++;
         } catch (err) {
           console.error(`Lỗi bulk suspend ${key}:`, err);
+          failedCount++;
         }
-      }
-
-      // Fallback for mock if all failed
-      if (successCount === 0 && selectedUserIds.length > 0) {
-        const updatedUsers = users.map(u => {
-          if (selectedUserIds.includes(`${u.role}_${u.id}`)) {
-            return { ...u, status: "suspended" };
-          }
-          return u;
-        });
-        setUsers(updatedUsers);
-        localStorage.setItem("agri_users", JSON.stringify(updatedUsers));
-        successCount = selectedUserIds.length;
       }
 
       await fetchUsers();
       setSelectedUserIds([]);
-      showToast(`Đã đình chỉ thành công ${successCount} tài khoản.`);
+      showToast(failedCount > 0
+        ? `Đã khóa ${successCount} tài khoản; ${failedCount} tài khoản chưa cập nhật được.`
+        : `Đã khóa ${successCount} tài khoản.`);
     }
   };
 
@@ -1220,7 +1200,7 @@ const UserAccounts = () => {
                       currentItems.map((user) => {
                         const isSelected = selectedUserIds.includes(`${user.role}_${user.id}`);
                         const userInitial = user.fullName ? user.fullName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() : "U";
-                        const isLocked = user.status === "suspended" || user.status === "banned" || user.status === "locked";
+                        const isLocked = ["suspended", "banned", "locked"].includes(user.status?.toLowerCase());
 
                         return (
                           <tr key={`${user.role}_${user.id}`} style={{ backgroundColor: isSelected ? "#f0fdf4" : "transparent" }}>
