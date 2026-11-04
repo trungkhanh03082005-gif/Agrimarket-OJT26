@@ -8,8 +8,6 @@ import org.example.agrimarket.repository.AdminRepository;
 import org.example.agrimarket.repository.CustomerRepository;
 import org.example.agrimarket.repository.FarmerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +25,6 @@ public class AdminUserService {
     @Autowired
     private FarmerRepository farmerRepository;
 
-    @Cacheable(value = "admin_all_users")
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getAllUsersList() {
         List<Map<String, Object>> userList = new ArrayList<>();
@@ -107,8 +104,4 @@ public class AdminUserService {
         return userList;
     }
 
-    @CacheEvict(value = "admin_all_users", allEntries = true)
-    public void clearUserCache() {
-        // Evict cache on mutations
-    }
 }

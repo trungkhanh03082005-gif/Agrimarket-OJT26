@@ -15,6 +15,7 @@ import org.example.agrimarket.repository.ProductImageRepository;
 import org.example.agrimarket.repository.NotificationRepository;
 import org.example.agrimarket.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -85,7 +86,9 @@ public class AdminUserController {
 
     @GetMapping
     public ResponseEntity<List<Map<String, Object>>> getAllUsers() {
-        return ResponseEntity.ok(adminUserService.getAllUsersList());
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .body(adminUserService.getAllUsersList());
     }
 
     @GetMapping("/paged")
@@ -145,7 +148,9 @@ public class AdminUserController {
                 .pageSize(size)
                 .build();
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .body(response);
     }
 
     @PostMapping
