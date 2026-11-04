@@ -7,6 +7,7 @@ import org.example.agrimarket.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -351,9 +352,12 @@ public class ReviewController {
     }
 
     @GetMapping("/farmer/reviews")
-    public ResponseEntity<?> getFarmerReviews(Principal principal) {
+    public ResponseEntity<?> getFarmerReviews(Principal principal, Authentication authentication) {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized: Vui lòng đăng nhập.");
+        }
+        if (!isFarmer(authentication)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Chỉ nhà vườn mới có thể xem đánh giá này.");
         }
 
         try {
@@ -515,10 +519,14 @@ public class ReviewController {
     @PutMapping("/farmer/reviews/{reviewId}/reply")
     public ResponseEntity<?> replyToReview(
             Principal principal,
+            Authentication authentication,
             @PathVariable Long reviewId,
             @RequestBody FarmerReplyRequest request) {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Vui lòng đăng nhập.");
+        }
+        if (!isFarmer(authentication)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Chỉ nhà vườn mới có thể phản hồi đánh giá.");
         }
 
         String reply = request != null && request.getReply() != null
@@ -549,6 +557,11 @@ public class ReviewController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Không thể lưu phản hồi đánh giá. Vui lòng thử lại.");
         }
+    }
+
+    private boolean isFarmer(Authentication authentication) {
+        return authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_FARMER".equals(authority.getAuthority()));
     }
 
     private String saveBase64File(String base64Str, String subFolder) throws IOException {

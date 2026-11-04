@@ -14,7 +14,8 @@ import {
   Award,
   Package,
   Truck,
-  Leaf
+  Leaf,
+  Pencil
 } from "lucide-react";
 import reviewService from "../../../services/reviewService";
 import "./FarmerReviews.css";
@@ -58,6 +59,8 @@ export const FarmerReviews = () => {
   const [ratingFilter, setRatingFilter] = useState("all"); // "all" | "5" | "4" | "3" | "2" | "1" | "has_images" | "has_comment"
   const [sortBy, setSortBy] = useState("newest"); // "newest" | "oldest" | "highest" | "lowest"
   const [activeImageModal, setActiveImageModal] = useState(null);
+  const [editingReplyIds, setEditingReplyIds] = useState([]);
+  const [replyDrafts, setReplyDrafts] = useState({});
   const [savingReplyIds, setSavingReplyIds] = useState([]);
   const [replyFeedback, setReplyFeedback] = useState({});
 
@@ -92,18 +95,28 @@ export const FarmerReviews = () => {
   };
 
   const handleReplyChange = (reviewId, reply) => {
-    setReviewsData((current) => ({
-      ...current,
-      reviews: current.reviews.map((review) =>
-        review.id === reviewId ? { ...review, farmerReply: reply } : review
-      ),
-    }));
+    setReplyDrafts((current) => ({ ...current, [reviewId]: reply }));
+    setReplyFeedback((current) => ({ ...current, [reviewId]: "" }));
+  };
+
+  const handleReplyEdit = (review) => {
+    setReplyDrafts((current) => ({ ...current, [review.id]: review.farmerReply || "" }));
+    setEditingReplyIds((current) => [...current, review.id]);
+  };
+
+  const handleReplyCancel = (reviewId) => {
+    setEditingReplyIds((current) => current.filter((id) => id !== reviewId));
+    setReplyDrafts((current) => {
+      const drafts = { ...current };
+      delete drafts[reviewId];
+      return drafts;
+    });
     setReplyFeedback((current) => ({ ...current, [reviewId]: "" }));
   };
 
   const handleReplySubmit = async (event, review) => {
     event.preventDefault();
-    const reply = (review.farmerReply || "").trim();
+    const reply = (replyDrafts[review.id] ?? review.farmerReply ?? "").trim();
     if (!reply || savingReplyIds.includes(review.id)) return;
 
     setSavingReplyIds((current) => [...current, review.id]);
@@ -116,6 +129,12 @@ export const FarmerReviews = () => {
           item.id === review.id ? { ...item, farmerReply: result.farmerReply } : item
         ),
       }));
+      setEditingReplyIds((current) => current.filter((id) => id !== review.id));
+      setReplyDrafts((current) => {
+        const drafts = { ...current };
+        delete drafts[review.id];
+        return drafts;
+      });
       setReplyFeedback((current) => ({ ...current, [review.id]: "Đã lưu phản hồi." }));
     } catch (err) {
       const message = typeof err.response?.data === "string"
@@ -511,34 +530,64 @@ export const FarmerReviews = () => {
                 <p className="fr-comment-text">{rev.comment}</p>
               )}
 
-              <form
-                className="fr-reply-form"
-                onSubmit={(event) => handleReplySubmit(event, rev)}
-              >
-                <label htmlFor={`farmer-reply-${rev.id}`}>Phản hồi của nhà vườn</label>
-                <textarea
-                  id={`farmer-reply-${rev.id}`}
-                  value={rev.farmerReply || ""}
-                  onChange={(event) => handleReplyChange(rev.id, event.target.value)}
-                  placeholder="Viết lời phản hồi cho khách hàng..."
-                  maxLength={2000}
-                  rows={3}
-                />
-                <div className="fr-reply-footer">
-                  <span>{replyFeedback[rev.id] || `${(rev.farmerReply || "").length}/2000 ký tự`}</span>
+              {rev.farmerReply && !editingReplyIds.includes(rev.id) ? (
+                <div className="fr-saved-reply">
+                  <div>
+                    <strong>Phản hồi của nhà vườn</strong>
+                    <p>{rev.farmerReply}</p>
+                  </div>
                   <button
-                    type="submit"
-                    disabled={!(rev.farmerReply || "").trim() || savingReplyIds.includes(rev.id)}
+                    type="button"
+                    onClick={() => handleReplyEdit(rev)}
+                    disabled={savingReplyIds.includes(rev.id)}
                   >
-                    <Send size={15} />
-                    {savingReplyIds.includes(rev.id)
-                      ? "Đang lưu..."
-                      : rev.farmerReply
-                        ? "Cập nhật phản hồi"
-                        : "Gửi phản hồi"}
+                    <Pencil size={15} />
+                    Sửa phản hồi
                   </button>
                 </div>
-              </form>
+              ) : (
+                <form
+                  className="fr-reply-form"
+                  onSubmit={(event) => handleReplySubmit(event, rev)}
+                >
+                  <label htmlFor={`farmer-reply-${rev.id}`}>Phản hồi của nhà vườn</label>
+                  <textarea
+                    id={`farmer-reply-${rev.id}`}
+                    value={replyDrafts[rev.id] ?? rev.farmerReply ?? ""}
+                    onChange={(event) => handleReplyChange(rev.id, event.target.value)}
+                    placeholder="Viết lời phản hồi cho khách hàng..."
+                    maxLength={2000}
+                    rows={3}
+                    disabled={savingReplyIds.includes(rev.id)}
+                  />
+                  <div className="fr-reply-footer">
+                    <span>{replyFeedback[rev.id] || `${(replyDrafts[rev.id] ?? rev.farmerReply ?? "").length}/2000 ký tự`}</span>
+                    <div className="fr-reply-actions">
+                      {editingReplyIds.includes(rev.id) && (
+                        <button
+                          type="button"
+                          className="fr-reply-cancel"
+                          onClick={() => handleReplyCancel(rev.id)}
+                          disabled={savingReplyIds.includes(rev.id)}
+                        >
+                          Hủy
+                        </button>
+                      )}
+                      <button
+                        type="submit"
+                        disabled={!(replyDrafts[rev.id] ?? rev.farmerReply ?? "").trim() || savingReplyIds.includes(rev.id)}
+                      >
+                        <Send size={15} />
+                        {savingReplyIds.includes(rev.id)
+                          ? "Đang lưu..."
+                          : editingReplyIds.includes(rev.id)
+                            ? "Lưu thay đổi"
+                            : "Gửi phản hồi"}
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              )}
 
               {/* Tags List */}
               {rev.tags && rev.tags.length > 0 && (

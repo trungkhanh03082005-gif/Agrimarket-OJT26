@@ -2157,6 +2157,13 @@ export default function ProductDetail() {
 
                     <p className="review-item-comment">{rev.comment}</p>
 
+                    {rev.farmerReply && (
+                      <div className="detail-farmer-reply">
+                        <strong>Phản hồi từ nhà vườn</strong>
+                        <p>{rev.farmerReply}</p>
+                      </div>
+                    )}
+
                     {/* Hiển thị hình ảnh đính kèm */}
                     {rev.images && rev.images.length > 0 && (
                       <div className="review-attached-gallery">
