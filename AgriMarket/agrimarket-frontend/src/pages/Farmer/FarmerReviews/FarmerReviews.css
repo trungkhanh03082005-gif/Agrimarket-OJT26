@@ -452,16 +452,33 @@
   outline: 2px solid #bbf7d0;
 }
 
-.fr-reply-footer {
+.fr-saved-reply {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  color: #64748b;
-  font-size: 0.8125rem;
+  gap: 16px;
+  padding: 14px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
 }
 
-.fr-reply-footer button {
+.fr-saved-reply strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #166534;
+  font-size: 0.875rem;
+}
+
+.fr-saved-reply p {
+  margin: 0;
+  color: #334155;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.fr-saved-reply button,
+.fr-reply-actions button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -474,11 +491,45 @@
   font: inherit;
   font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;
 }
 
-.fr-reply-footer button:disabled {
+.fr-saved-reply button:disabled,
+.fr-reply-actions button:disabled {
   background: #94a3b8;
   cursor: not-allowed;
+}
+
+.fr-reply-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #64748b;
+  font-size: 0.8125rem;
+}
+
+.fr-reply-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fr-reply-actions .fr-reply-cancel {
+  background: #64748b;
+}
+
+@media (max-width: 520px) {
+  .fr-saved-reply,
+  .fr-reply-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .fr-saved-reply button,
+  .fr-reply-actions {
+    align-self: flex-end;
+  }
 }
 
 /* Tags List */
