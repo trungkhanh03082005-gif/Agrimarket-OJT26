@@ -19,6 +19,7 @@ import org.example.agrimarket.repository.NotificationRepository;
 import org.example.agrimarket.repository.WishlistItemRepository;
 import org.example.agrimarket.repository.PreorderItemRepository;
 import org.example.agrimarket.repository.PreorderRepository;
+import org.example.agrimarket.repository.LivestreamRepository;
 import org.example.agrimarket.model.Preorder;
 import org.example.agrimarket.model.PreorderItem;
 import org.example.agrimarket.repository.ProductSpecification;
@@ -77,6 +78,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private PreorderRepository preorderRepository;
+
+    @Autowired
+    private LivestreamRepository livestreamRepository;
 
     @Autowired
     private OrderService orderService;
@@ -321,6 +325,10 @@ public class ProductServiceImpl implements ProductService {
         if (product.getFarmer() == null || !product.getFarmer().getEmail().equalsIgnoreCase(farmerEmail)) {
             throw new IllegalArgumentException("Bạn không có quyền xóa sản phẩm này.");
         }
+
+        livestreamRepository.clearPinnedProduct(id);
+
+        productReviewRepository.deleteAll(productReviewRepository.findByProductIdOrderByCreatedAtDesc(id));
 
         // Delete related images physically
         List<ProductImage> images = productImageRepository.findByProductId(id);

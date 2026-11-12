@@ -131,12 +131,12 @@ export const ProductList = () => {
     setConfirmModal({
       show: true,
       title: "Xác nhận xóa sản phẩm",
-      message: `Bạn có chắc chắn muốn xóa sản phẩm "${name}" không? Hành động này sẽ gỡ sản phẩm vĩnh viễn khỏi hệ thống.`,
+      message: `Bạn có chắc chắn muốn xóa vĩnh viễn sản phẩm "${name}" không? Sản phẩm sẽ bị gỡ khỏi hệ thống; thông tin sản phẩm trong lịch sử đơn hàng vẫn được giữ.`,
       onConfirm: async () => {
         try {
-          await productService.deleteFarmerProduct(id);
+          const result = await productService.deleteFarmerProduct(id);
           setProducts(prev => prev.filter(p => p.id !== id));
-          showToast("Xóa sản phẩm thành công!", "success");
+          showToast(result || "Xóa sản phẩm thành công!", "success");
         } catch (err) {
           console.error(err);
           showToast("Xóa sản phẩm thất bại: " + (err.response?.data || err.message), "error");

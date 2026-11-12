@@ -45,4 +45,3 @@ public interface ProductService {
     );
     void earlyHarvest(Long productId, String farmerEmail);
 }
-

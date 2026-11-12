@@ -87,7 +87,7 @@ public class ProductController {
 
         try {
             productService.deleteProduct(id, principal.getName());
-            return ResponseEntity.ok("Xóa sản phẩm thành công.");
+            return ResponseEntity.ok("Xóa sản phẩm thành công. Lịch sử đơn hàng vẫn được giữ.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
