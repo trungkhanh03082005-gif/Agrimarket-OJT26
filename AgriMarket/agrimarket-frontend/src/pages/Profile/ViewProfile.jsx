@@ -303,11 +303,30 @@ const ViewProfile = () => {
             </div>
             <p className="custom-modal-message">{confirmModal.message}</p>
             <div className="custom-modal-actions">
-              <button className="custom-btn-cancel" onClick={() => setConfirmModal({ show: false })}>
+              <button 
+                className="custom-btn-cancel" 
+                disabled={confirmModal.isLoading}
+                onClick={() => setConfirmModal({ show: false })}
+              >
                 Hủy bỏ
               </button>
-              <button className="custom-btn-confirm" onClick={() => { confirmModal.onConfirm(); setConfirmModal({ show: false }); }}>
-                Xác nhận
+              <button 
+                className="custom-btn-confirm" 
+                disabled={confirmModal.isLoading}
+                onClick={async () => {
+                  if (confirmModal.onConfirm) {
+                    setConfirmModal(prev => ({ ...prev, isLoading: true }));
+                    try {
+                      await confirmModal.onConfirm();
+                    } finally {
+                      setConfirmModal({ show: false, isLoading: false });
+                    }
+                  } else {
+                    setConfirmModal({ show: false });
+                  }
+                }}
+              >
+                {confirmModal.isLoading ? "Đang xử lý..." : "Xác nhận"}
               </button>
             </div>
           </div>

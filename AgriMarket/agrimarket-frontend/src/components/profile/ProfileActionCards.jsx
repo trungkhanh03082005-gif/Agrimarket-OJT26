@@ -33,20 +33,18 @@ const ProfileActionCards = ({ showToast, setConfirmModal }) => {
             message: "Bạn có chắc chắn muốn xoá tài khoản không? Hành động này không thể hoàn tác và tất cả dữ liệu liên quan sẽ bị xoá.",
             onConfirm: async () => {
                 try {
-                    await profileService.deleteAccount();
-                    showToast("Xoá tài khoản thành công!", "success");
+                    const res = await profileService.deleteAccount();
+                    showToast(typeof res === "string" ? res : "Xoá tài khoản thành công!", "success");
                     setTimeout(() => {
                         navigate("/");
                         window.location.reload();
-                    }, 1500);
+                    }, 1200);
                 } catch (error) {
                     console.error("Xoá tài khoản thất bại:", error);
-                    showToast(
-                        error?.response?.data ||
-                        error?.message ||
-                        "Đã xảy ra lỗi khi xoá tài khoản. Vui lòng thử lại sau.",
-                        "error"
-                    );
+                    const errorMsg = typeof error?.response?.data === "string"
+                        ? error.response.data
+                        : (error?.response?.data?.message || error?.message || "Đã xảy ra lỗi khi xoá tài khoản. Vui lòng thử lại sau.");
+                    showToast(errorMsg, "error");
                 }
             }
         });

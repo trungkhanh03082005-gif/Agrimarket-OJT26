@@ -280,178 +280,336 @@ public class ProfileController {
 
     @Transactional
     public void deleteUserDataFromDatabase(String email, Long customerId, Long farmerId) {
-        // 1. preorder_item
-        if (customerId != null) {
-            jdbcTemplate.update("DELETE FROM preorder_item WHERE preorder_id IN (SELECT id FROM preorder WHERE customer_id = ?)", customerId);
+        Long userId = customerId != null ? customerId : farmerId;
+        if (userId == null) {
+            try {
+                userId = jdbcTemplate.queryForObject("SELECT id FROM users WHERE email = ?", Long.class, email);
+            } catch (Exception ignored) {}
         }
-        if (farmerId != null) {
-            jdbcTemplate.update("DELETE FROM preorder_item WHERE product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId);
+
+        // 1. preorder_item
+        if (tableExists("preorder_item")) {
+            if (customerId != null) {
+                safeExecute("DELETE FROM preorder_item WHERE preorder_id IN (SELECT id FROM preorder WHERE customer_id = ?)", customerId);
+            }
+            if (farmerId != null) {
+                safeExecute("DELETE FROM preorder_item WHERE product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId);
+            }
         }
 
         // 2. preorder
-        if (customerId != null) {
-            jdbcTemplate.update("DELETE FROM preorder WHERE customer_id = ?", customerId);
+        if (tableExists("preorder") && customerId != null) {
+            safeExecute("DELETE FROM preorder WHERE customer_id = ?", customerId);
         }
 
         // 3. wishlist
-        if (customerId != null) {
-            jdbcTemplate.update("DELETE FROM wishlist WHERE customer_id = ?", customerId);
+        if (tableExists("wishlist")) {
+            if (customerId != null) {
+                safeExecute("DELETE FROM wishlist WHERE customer_id = ?", customerId);
+            }
+            if (farmerId != null) {
+                safeExecute("DELETE FROM wishlist WHERE product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId);
+            }
+        }
+
+        // 4. cart_item & cart
+        if (tableExists("cart_item")) {
+            safeExecute("DELETE FROM cart_item WHERE cart_id IN (SELECT id FROM cart WHERE email = ?)", email);
+            if (farmerId != null) {
+                safeExecute("DELETE FROM cart_item WHERE product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId);
+            }
+        }
+        if (tableExists("cart")) {
+            safeExecute("DELETE FROM cart WHERE email = ?", email);
+        }
+
+        // 5. customer_address
+        if (tableExists("customer_address") && customerId != null) {
+            safeExecute("DELETE FROM customer_address WHERE customer_id = ?", customerId);
+        }
+
+        // 6. farmer_follow
+        if (tableExists("farmer_follow")) {
+            if (customerId != null) {
+                safeExecute("DELETE FROM farmer_follow WHERE customer_id = ?", customerId);
+            }
+            if (farmerId != null) {
+                safeExecute("DELETE FROM farmer_follow WHERE farmer_id = ?", farmerId);
+            }
+        }
+
+        // 7. messages / message & conversation
+        String msgTable = tableExists("messages") ? "messages" : (tableExists("message") ? "message" : null);
+        if (msgTable != null) {
+            if (customerId != null) {
+                safeExecute("DELETE FROM " + msgTable + " WHERE conversation_id IN (SELECT id FROM conversation WHERE customer_id = ?)", customerId);
+            }
+            if (farmerId != null) {
+                safeExecute("DELETE FROM " + msgTable + " WHERE conversation_id IN (SELECT id FROM conversation WHERE farmer_id = ?)", farmerId);
+            }
+            if (userId != null) {
+                safeExecute("DELETE FROM " + msgTable + " WHERE sender_id = ?", userId);
+            }
+        }
+        if (tableExists("conversation")) {
+            if (customerId != null) {
+                safeExecute("DELETE FROM conversation WHERE customer_id = ?", customerId);
+            }
+            if (farmerId != null) {
+                safeExecute("DELETE FROM conversation WHERE farmer_id = ?", farmerId);
+            }
+        }
+
+        // 8. AI tables
+        if (tableExists("ai_message") && customerId != null) {
+            safeExecute("DELETE FROM ai_message WHERE conversation_id IN (SELECT id FROM ai_conversation WHERE customer_id = ?)", customerId);
+        }
+        if (tableExists("ai_conversation") && customerId != null) {
+            safeExecute("DELETE FROM ai_conversation WHERE customer_id = ?", customerId);
+        }
+        if (tableExists("ai_search_history") && customerId != null) {
+            safeExecute("DELETE FROM ai_search_history WHERE customer_id = ?", customerId);
+        }
+        if (tableExists("product_view_history")) {
+            if (customerId != null) {
+                safeExecute("DELETE FROM product_view_history WHERE customer_id = ?", customerId);
+            }
+            if (farmerId != null) {
+                safeExecute("DELETE FROM product_view_history WHERE product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId);
+            }
+        }
+        if (tableExists("ai_recommendation")) {
+            if (customerId != null) {
+                safeExecute("DELETE FROM ai_recommendation WHERE customer_id = ?", customerId);
+            }
+            if (farmerId != null) {
+                safeExecute("DELETE FROM ai_recommendation WHERE product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId);
+            }
+        }
+
+        // 9. voucher_usage & promotions
+        if (tableExists("voucher_usage") && customerId != null) {
+            safeExecute("DELETE FROM voucher_usage WHERE customer_id = ?", customerId);
         }
         if (farmerId != null) {
-            jdbcTemplate.update("DELETE FROM wishlist WHERE product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId);
+            if (tableExists("promotion_product")) {
+                safeExecute("DELETE FROM promotion_product WHERE promotion_id IN (SELECT id FROM promotion WHERE farmer_id = ?) OR product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId, farmerId);
+            }
+            if (tableExists("promotion")) {
+                safeExecute("DELETE FROM promotion WHERE farmer_id = ?", farmerId);
+            }
         }
 
-        // 5. checkout_item
-        if (customerId != null) {
-            jdbcTemplate.update("DELETE FROM checkout_item WHERE checkout_id IN (SELECT id FROM checkout_session WHERE customer_id = ?)", customerId);
+        // 10. Order related tables (product_review_images, product_review_tags, product_review, order_item, orders, payment, order_group)
+        if (tableExists("product_review_images")) {
+            if (customerId != null) {
+                safeExecute("DELETE FROM product_review_images WHERE review_id IN (SELECT id FROM product_review WHERE customer_id = ?)", customerId);
+            }
+            if (farmerId != null) {
+                safeExecute("DELETE FROM product_review_images WHERE review_id IN (SELECT id FROM product_review WHERE product_id IN (SELECT id FROM product WHERE farmer_id = ?))", farmerId);
+            }
         }
+
+        if (tableExists("product_review_tags")) {
+            if (customerId != null) {
+                safeExecute("DELETE FROM product_review_tags WHERE review_id IN (SELECT id FROM product_review WHERE customer_id = ?)", customerId);
+            }
+            if (farmerId != null) {
+                safeExecute("DELETE FROM product_review_tags WHERE review_id IN (SELECT id FROM product_review WHERE product_id IN (SELECT id FROM product WHERE farmer_id = ?))", farmerId);
+            }
+        }
+
+        if (tableExists("product_review")) {
+            if (customerId != null) {
+                safeExecute("DELETE FROM product_review WHERE customer_id = ?", customerId);
+            }
+            if (farmerId != null) {
+                safeExecute("DELETE FROM product_review WHERE product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId);
+            }
+        }
+
+        if (tableExists("order_item")) {
+            if (customerId != null) {
+                safeExecute("DELETE FROM order_item WHERE order_id IN (SELECT id FROM orders WHERE customer_id = ?)", customerId);
+            }
+            if (farmerId != null) {
+                safeExecute("DELETE FROM order_item WHERE farmer_id = ? OR product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId, farmerId);
+            }
+        }
+
+        if (tableExists("orders")) {
+            if (customerId != null) {
+                safeExecute("DELETE FROM orders WHERE customer_id = ?", customerId);
+            }
+            if (farmerId != null) {
+                safeExecute("DELETE FROM orders WHERE farmer_id = ?", farmerId);
+            }
+        }
+
+        if (tableExists("payment")) {
+            if (customerId != null && tableExists("order_group")) {
+                safeExecute("DELETE FROM payment WHERE order_group_id IN (SELECT id FROM order_group WHERE customer_id = ?)", customerId);
+            }
+        }
+
+        if (tableExists("order_group") && customerId != null) {
+            safeExecute("DELETE FROM order_group WHERE customer_id = ?", customerId);
+        }
+
+        // 11. Livestream & moderation logs
+        if (tableExists("livestream_blocked_users")) {
+            if (userId != null) {
+                safeExecute("DELETE FROM livestream_blocked_users WHERE user_id = ?", userId);
+            }
+            if (farmerId != null) {
+                safeExecute("DELETE FROM livestream_blocked_users WHERE livestream_id IN (SELECT id FROM livestream WHERE farmer_id = ?)", farmerId);
+            }
+        }
+        if (tableExists("livestream_comment")) {
+            if (userId != null) {
+                safeExecute("DELETE FROM livestream_comment WHERE sender_id = ?", userId);
+            }
+            if (farmerId != null) {
+                safeExecute("DELETE FROM livestream_comment WHERE livestream_id IN (SELECT id FROM livestream WHERE farmer_id = ?)", farmerId);
+            }
+        }
+        if (tableExists("livestream_alert") && farmerId != null) {
+            safeExecute("DELETE FROM livestream_alert WHERE livestream_id IN (SELECT id FROM livestream WHERE farmer_id = ?)", farmerId);
+        }
+        if (tableExists("chat_violation_log")) {
+            if (userId != null) {
+                safeExecute("DELETE FROM chat_violation_log WHERE user_id = ?", userId);
+            }
+            if (farmerId != null) {
+                safeExecute("DELETE FROM chat_violation_log WHERE livestream_id IN (SELECT id FROM livestream WHERE farmer_id = ?)", farmerId);
+            }
+        }
+        if (tableExists("livestream_product") && farmerId != null) {
+            safeExecute("DELETE FROM livestream_product WHERE product_id IN (SELECT id FROM product WHERE farmer_id = ?) OR livestream_id IN (SELECT id FROM livestream WHERE farmer_id = ?)", farmerId, farmerId);
+        }
+        if (tableExists("livestream") && farmerId != null) {
+            safeExecute("DELETE FROM livestream WHERE farmer_id = ?", farmerId);
+        }
+
+        // 12. Farmer products & related metadata
         if (farmerId != null) {
-            jdbcTemplate.update("DELETE FROM checkout_item WHERE product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId);
+            if (tableExists("product_discount")) {
+                safeExecute("DELETE FROM product_discount WHERE product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId);
+            }
+            if (tableExists("product_image")) {
+                safeExecute("DELETE FROM product_image WHERE product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId);
+            }
+            if (tableExists("ai_content_moderation")) {
+                safeExecute("DELETE FROM ai_content_moderation WHERE product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId);
+            }
+            if (tableExists("ai_product_description_history")) {
+                safeExecute("DELETE FROM ai_product_description_history WHERE farmer_id = ? OR product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId, farmerId);
+            }
+            if (tableExists("ai_price_suggestion")) {
+                safeExecute("DELETE FROM ai_price_suggestion WHERE farmer_id = ? OR product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId, farmerId);
+            }
+            if (tableExists("product")) {
+                safeExecute("DELETE FROM product WHERE farmer_id = ?", farmerId);
+            }
         }
 
-        // 6. checkout_session
-        if (customerId != null) {
-            jdbcTemplate.update("DELETE FROM checkout_session WHERE customer_id = ?", customerId);
+        // 13. Support & Reports
+        if (tableExists("support_message") && userId != null) {
+            safeExecute("DELETE FROM support_message WHERE sender_id = ? OR support_request_id IN (SELECT id FROM support_request WHERE sender_id = ?)", userId, userId);
+        }
+        if (tableExists("support_request") && userId != null) {
+            safeExecute("DELETE FROM support_request WHERE sender_id = ?", userId);
+        }
+        if (tableExists("report")) {
+            if (userId != null) {
+                safeExecute("DELETE FROM report WHERE reporter_id = ?", userId);
+            }
+            if (customerId != null) {
+                safeExecute("DELETE FROM report WHERE target_type = 'customer' AND target_id = ?", customerId);
+            }
+            if (farmerId != null) {
+                safeExecute("DELETE FROM report WHERE target_type = 'farmer' AND target_id = ?", farmerId);
+            }
         }
 
-        // 7. cart_item
-        jdbcTemplate.update("DELETE FROM cart_item WHERE cart_id IN (SELECT id FROM cart WHERE email = ?)", email);
-
-        // 8. cart
-        jdbcTemplate.update("DELETE FROM cart WHERE email = ?", email);
-
-        // 9. customer_address
-        if (customerId != null) {
-            jdbcTemplate.update("DELETE FROM customer_address WHERE customer_id = ?", customerId);
+        // 14. Notifications & OTP
+        if (tableExists("otp_verification")) {
+            safeExecute("DELETE FROM otp_verification WHERE LOWER(email) = LOWER(?)", email);
+        }
+        if (tableExists("admin_notification") && userId != null) {
+            safeExecute("DELETE FROM admin_notification WHERE target_user_id = ?", userId);
+        }
+        if (tableExists("notification")) {
+            if (userId != null) {
+                safeExecute("DELETE FROM notification WHERE receiver_id = ?", userId);
+            }
+            if (customerId != null) {
+                safeExecute("DELETE FROM notification WHERE receiver_id = ? AND receiver_type = 'customer'", customerId);
+            }
+            if (farmerId != null) {
+                safeExecute("DELETE FROM notification WHERE receiver_id = ? AND receiver_type = 'farmer'", farmerId);
+            }
         }
 
-        // 10. farmer_follow
-        if (customerId != null) {
-            jdbcTemplate.update("DELETE FROM farmer_follow WHERE customer_id = ?", customerId);
+        // 15. Finally delete from farmer, customer, and users tables
+        if (tableExists("farmer")) {
+            if (farmerId != null) {
+                safeExecute("DELETE FROM farmer WHERE id = ?", farmerId);
+            }
+            safeExecute("DELETE FROM farmer WHERE id IN (SELECT id FROM users WHERE LOWER(email) = LOWER(?))", email);
         }
-        if (farmerId != null) {
-            jdbcTemplate.update("DELETE FROM farmer_follow WHERE farmer_id = ?", farmerId);
+        if (tableExists("customer")) {
+            if (customerId != null) {
+                safeExecute("DELETE FROM customer WHERE id = ?", customerId);
+            }
+            safeExecute("DELETE FROM customer WHERE id IN (SELECT id FROM users WHERE LOWER(email) = LOWER(?))", email);
         }
+        if (tableExists("users")) {
+            if (userId != null) {
+                safeExecute("DELETE FROM users WHERE id = ?", userId);
+            }
+            safeExecute("DELETE FROM users WHERE LOWER(email) = LOWER(?)", email);
+        }
+    }
 
-        // 11. messages
-        if (customerId != null) {
-            jdbcTemplate.update("DELETE FROM messages WHERE conversation_id IN (SELECT id FROM conversation WHERE customer_id = ?)", customerId);
+    private boolean tableExists(String tableName) {
+        try {
+            Boolean exists = jdbcTemplate.queryForObject(
+                "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND LOWER(table_name) = LOWER(?))",
+                Boolean.class,
+                tableName
+            );
+            return Boolean.TRUE.equals(exists);
+        } catch (Exception e) {
+            return false;
         }
-        if (farmerId != null) {
-            jdbcTemplate.update("DELETE FROM messages WHERE conversation_id IN (SELECT id FROM conversation WHERE farmer_id = ?)", farmerId);
-        }
+    }
 
-        // 12. conversation
-        if (customerId != null) {
-            jdbcTemplate.update("DELETE FROM conversation WHERE customer_id = ?", customerId);
-        }
-        if (farmerId != null) {
-            jdbcTemplate.update("DELETE FROM conversation WHERE farmer_id = ?", farmerId);
-        }
-
-        // 13. AI_message
-        if (customerId != null) {
-            jdbcTemplate.update("DELETE FROM AI_message WHERE conversation_id IN (SELECT id FROM AI_conversation WHERE customer_id = ?)", customerId);
-        }
-
-        // 14. AI_conversation
-        if (customerId != null) {
-            jdbcTemplate.update("DELETE FROM AI_conversation WHERE customer_id = ?", customerId);
-        }
-
-        // 15. AI_search_history
-        if (customerId != null) {
-            jdbcTemplate.update("DELETE FROM AI_search_history WHERE customer_id = ?", customerId);
-        }
-
-        // 16. product_view_history
-        if (customerId != null) {
-            jdbcTemplate.update("DELETE FROM product_view_history WHERE customer_id = ?", customerId);
-        }
-        if (farmerId != null) {
-            jdbcTemplate.update("DELETE FROM product_view_history WHERE product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId);
-        }
-
-        // 17. AI_recommendation
-        if (customerId != null) {
-            jdbcTemplate.update("DELETE FROM AI_recommendation WHERE customer_id = ?", customerId);
-        }
-        if (farmerId != null) {
-            jdbcTemplate.update("DELETE FROM AI_recommendation WHERE product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId);
-        }
-
-        // 18. voucher_usage
-        if (customerId != null) {
-            jdbcTemplate.update("DELETE FROM voucher_usage WHERE customer_id = ?", customerId);
-        }
-
-        // 19. Order related tables
-        List<Long> orderIds = new java.util.ArrayList<>();
-        if (customerId != null) {
-            orderIds.addAll(jdbcTemplate.queryForList("SELECT id FROM orders WHERE customer_id = ?", Long.class, customerId));
-        }
-        if (farmerId != null) {
-            orderIds.addAll(jdbcTemplate.queryForList("SELECT DISTINCT order_id FROM order_item WHERE farmer_id = ?", Long.class, farmerId));
-        }
-        orderIds = orderIds.stream().distinct().collect(java.util.stream.Collectors.toList());
-
-        if (!orderIds.isEmpty()) {
-            String idsCsv = orderIds.stream().map(String::valueOf).collect(java.util.stream.Collectors.joining(","));
-            jdbcTemplate.update("DELETE FROM payment WHERE order_id IN (" + idsCsv + ")");
-            jdbcTemplate.update("DELETE FROM product_review WHERE order_id IN (" + idsCsv + ")");
-            jdbcTemplate.update("DELETE FROM order_item WHERE order_id IN (" + idsCsv + ")");
-            jdbcTemplate.update("DELETE FROM orders WHERE id IN (" + idsCsv + ")");
-        }
-
-        // Cleanup reviews not linked to orders
-        if (customerId != null) {
-            jdbcTemplate.update("DELETE FROM product_review WHERE customer_id = ?", customerId);
-        }
-        if (farmerId != null) {
-            jdbcTemplate.update("DELETE FROM product_review WHERE product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId);
-        }
-
-        // 26. product_discount, product_image, AI_content_moderation, AI_product_description_history, AI_price_suggestion, livestream_product, livestream, product
-        if (farmerId != null) {
-            jdbcTemplate.update("DELETE FROM product_discount WHERE product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId);
-            jdbcTemplate.update("DELETE FROM product_image WHERE product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId);
-            jdbcTemplate.update("DELETE FROM AI_content_moderation WHERE product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId);
-            jdbcTemplate.update("DELETE FROM AI_product_description_history WHERE farmer_id = ? OR product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId, farmerId);
-            jdbcTemplate.update("DELETE FROM AI_price_suggestion WHERE farmer_id = ? OR product_id IN (SELECT id FROM product WHERE farmer_id = ?)", farmerId, farmerId);
-            jdbcTemplate.update("DELETE FROM livestream_product WHERE product_id IN (SELECT id FROM product WHERE farmer_id = ?) OR livestream_id IN (SELECT id FROM livestream WHERE farmer_id = ?)", farmerId, farmerId);
-            jdbcTemplate.update("DELETE FROM livestream WHERE farmer_id = ?", farmerId);
-            jdbcTemplate.update("DELETE FROM product WHERE farmer_id = ?", farmerId);
-        }
-
-        // 34. otp_verification
-        jdbcTemplate.update("DELETE FROM otp_verification WHERE email = ?", email);
-
-        // 35. notification
-        if (customerId != null) {
-            jdbcTemplate.update("DELETE FROM notification WHERE receiver_id = ? AND receiver_type = 'customer'", customerId);
-        }
-        if (farmerId != null) {
-            jdbcTemplate.update("DELETE FROM notification WHERE receiver_id = ? AND receiver_type = 'farmer'", farmerId);
-        }
-
-        // Finally delete from customer and farmer tables
-        if (customerId != null) {
-            jdbcTemplate.update("DELETE FROM customer WHERE id = ?", customerId);
-        }
-        if (farmerId != null) {
-            jdbcTemplate.update("DELETE FROM farmer WHERE id = ?", farmerId);
+    private void safeExecute(String sql, Object... params) {
+        try {
+            jdbcTemplate.update(sql, params);
+        } catch (Exception e) {
+            System.err.println("Notice: Could not execute SQL [" + sql + "]: " + e.getMessage());
         }
     }
 
     private void deletePhysicalAvatarFile(String avatarUrl) {
-        if (avatarUrl != null && !avatarUrl.isEmpty() && avatarUrl.contains("/storage/v1/object/public/")) {
-            supabaseStorageService.deleteFileByUrl(avatarUrl);
+        try {
+            if (avatarUrl != null && !avatarUrl.isEmpty() && avatarUrl.contains("/storage/v1/object/public/")) {
+                supabaseStorageService.deleteFileByUrl(avatarUrl);
+            }
+        } catch (Exception e) {
+            System.err.println("Warning: Could not delete avatar from storage: " + e.getMessage());
         }
     }
 
     private void deletePhysicalFile(String fileUrl, String subFolder) {
-        if (fileUrl != null && !fileUrl.isEmpty() && fileUrl.contains("/storage/v1/object/public/")) {
-            supabaseStorageService.deleteFileByUrl(fileUrl);
+        try {
+            if (fileUrl != null && !fileUrl.isEmpty() && fileUrl.contains("/storage/v1/object/public/")) {
+                supabaseStorageService.deleteFileByUrl(fileUrl);
+            }
+        } catch (Exception e) {
+            System.err.println("Warning: Could not delete physical file from storage: " + e.getMessage());
         }
     }
 }
