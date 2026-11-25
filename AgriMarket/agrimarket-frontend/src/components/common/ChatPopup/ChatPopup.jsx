@@ -325,7 +325,11 @@ export const ChatPopup = () => {
       const errorMessage = typeof err.response?.data === "string"
         ? err.response.data
         : err.response?.data?.message || "Không thể gửi tin nhắn.";
-      window.alert(errorMessage);
+      if (err.response?.status === 503) {
+        window.alert("Dịch vụ chat đang gặp sự cố tạm thời. Vui lòng thử lại sau.");
+      } else {
+        window.alert(errorMessage);
+      }
     }
   };
 
