@@ -11,11 +11,14 @@ import org.springframework.web.server.ResponseStatusException;
 public class ChatModerationService {
 
     private final RestClient restClient;
+    private final ToxicityFilterService toxicityFilterService;
 
     public ChatModerationService(
             RestClient.Builder restClientBuilder,
-            @Value("${app.moderation.url:http://localhost:8000}") String moderationUrl) {
+            @Value("${app.moderation.url:http://localhost:8000}") String moderationUrl,
+            ToxicityFilterService toxicityFilterService) {
         this.restClient = restClientBuilder.baseUrl(moderationUrl).build();
+        this.toxicityFilterService = toxicityFilterService;
     }
 
     public void validateMessage(String content) {
@@ -27,19 +30,27 @@ public class ChatModerationService {
                     .retrieve()
                     .body(ModerationResult.class);
         } catch (RestClientException exception) {
-            throw new ResponseStatusException(
-                    HttpStatus.SERVICE_UNAVAILABLE,
-                    "Dịch vụ kiểm duyệt nội dung hiện không khả dụng. Tin nhắn chưa được gửi.",
-                    exception);
+            validateWithLocalFilter(content);
+            System.err.println(">>> Chat moderation worker unavailable; using local fallback: "
+                    + exception.getMessage());
+            return;
         }
 
         if (result == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.SERVICE_UNAVAILABLE,
-                    "Dịch vụ kiểm duyệt trả về kết quả không hợp lệ. Tin nhắn chưa được gửi.");
+            validateWithLocalFilter(content);
+            return;
         }
 
         if (result.flagged()) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNPROCESSABLE_ENTITY,
+                    "Tin nhắn có nội dung không phù hợp nên chưa được gửi.");
+        }
+    }
+
+    private void validateWithLocalFilter(String content) {
+        String violation = toxicityFilterService.checkLocalFilter(content);
+        if ("TOXIC".equals(violation) || "REDIRECT".equals(violation)) {
             throw new ResponseStatusException(
                     HttpStatus.UNPROCESSABLE_ENTITY,
                     "Tin nhắn có nội dung không phù hợp nên chưa được gửi.");
